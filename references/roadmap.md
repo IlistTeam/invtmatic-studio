@@ -1,9 +1,10 @@
 # Readiness and next capabilities for INVTmatic development
 
 This is an implementation roadmap, not a list of available MCP tools. Current
-0.4.0 provides text/library inspection, POU/GVL/DUT creation, ST edits,
+0.6.0 provides text/library inspection, POU/GVL/DUT creation, ST edits,
 cyclic-task configuration and program calls, builds and object export, plus
-positively verified Studio simulation tools described in simulation-debugging.md. It can
+positively verified Studio simulation, breakpoint/step/frame-local and bounded trace
+tools described in simulation-debugging.md and advanced-debugging.md. It can
 support application logic on a prepared native project. It cannot yet reproduce
 a complete powder loader or three-axis SLM machine project from a blank setup.
 
@@ -22,12 +23,12 @@ criteria. Instructions alone cannot add an API operation or test physical behavi
 | Read-only diff/impact planning, ST expected-hash guard, grouped changes and one final build | Inspect → prepare dependency-ordered changes → review diff → apply → verify | Concurrent/manual edits detected; error retains an inspectable state/checkpoint; no automatic replay after timeout |
 | Deterministic ST/manifest export and import into known objects | Git sources, source/project drift detection, reproducible revisions | Regenerate/update a copy from a checked-out text revision; reported GUID/path mapping and build result |
 
-Standalone Git layout: the repository root contains skill resources, `mcp/` sources,
-and the fixed TM750 test fixture. Dependencies, builds, session outputs and raw
-investigation artifacts are ignored. Installed skill and `dist/` are deployment
-copies. Build the INVT entrypoint, not upstream `server.js`. Pinned upstreams and
-original-source hashes are in `provenance.json`; repository history belongs to
-the GitHub repository rather than an embedded upstream `.git` directory.
+Current Git layout: common repository `E:\Codex\INVT`; MCP and skill sources in
+`integration/`; fixed TM750 fixture tracked; dependencies, session outputs and
+investigation artifacts ignored. Installed skill and `dist/` are deployment
+copies. Build the INVT entrypoint, not upstream `server.js`. Upstream Git metadata
+is preserved locally at `analysis/git-history/codesys-mcp-invt.git` and provenance
+is in `upstreams.json`. MCP configuration still points to the same code path.
 
 Installed stubs show `save_as`, `save_archive`, comparison and object lifecycle
 APIs, but their presence is not an INVT validation result. Probe them on copies

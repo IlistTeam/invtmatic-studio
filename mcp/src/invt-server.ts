@@ -9,7 +9,7 @@ const options = new Command().requiredOption('--workspace <path>')
   .option('--exe <path>').option('--profile <name>')
   .option('--timeout-ms <number>', 'Command deadline', '60000').parse().opts();
 const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs));
-const server = new McpServer({name:'invtmatic-persistent', version:'0.4.0'});
+const server = new McpServer({name:'invtmatic-persistent', version:'0.6.0'});
 // SDK's complex overload inference is also avoided by the upstream server.
 const api = server as any;
 const guid = z.string().uuid();
@@ -86,9 +86,11 @@ for (const [name,operation,description] of [
   ['invt_get_runtime_state','runtime_state','Read fresh simulation connection/execution/exception state without auto-login.'],
   ['invt_download_application','download_application','Fresh build and explicit full download to verified simulation using Never; no boot or automatic start. Disconnect first.'],
   ['invt_start_application','start_application','Explicit RUN in the owned, verified simulation connection; verify state.'],
-  ['invt_stop_application','stop_application','Explicit STOP in the owned, verified simulation connection; verify state.'],
   ['invt_list_forces','list_forces','List current simulation forces and distinguish those created by this MCP session.']
 ]) api.tool(name,description,runtime,(args:any)=>reply(()=>session.call({operation,...args})));
+api.tool('invt_stop_application','Explicit STOP in owned simulation. From HALT choose finish_cycle (remaining statements execute) or abort_cycle (can require recovery); no implicit choice.',
+  {...runtime,halt_behavior:z.enum(['finish_cycle','abort_cycle']).optional()},
+  (args:any)=>reply(()=>session.call({operation:'stop_application',...args})));
 api.tool('invt_read_variables','Read one or several simulation variable paths with individual timestamps/errors; sequential, not atomic.',
   {...runtime,variables},(args:any)=>reply(()=>session.call({operation:'read_variables',...args})));
 api.tool('invt_monitor_variables','Bounded host polling of simulation variables; stop on error, no atomicity or scan-timing guarantee.',
@@ -101,6 +103,38 @@ for (const [name,operation,description] of [
   (args:any)=>reply(()=>session.call({operation,...args})));
 api.tool('invt_unforce_variable','Selectively release a force created by this MCP session; never unforce all or foreign forces.',
   {...runtime,variable},(args:any)=>reply(()=>session.call({operation:'unforce_variable',...args})));
+api.tool('invt_prepare_debug','Prepare a version-gated debugger generation for the current owned full download in verified simulation; no auto-download/start.',
+  runtime,(args:any)=>reply(()=>session.call({operation:'prepare_debug',...args})));
+const debugging = {...runtime,debug_id:guid};
+api.tool('invt_get_debug_locations','Read exact executable ST implementation rows/columns from the current compiled source. Lines and columns are 1-based; no snapping.',
+  {...debugging,object_guid:guid},(args:any)=>reply(()=>session.call({operation:'debug_locations',...args})));
+api.tool('invt_set_breakpoint','Set one owned unconditional breakpoint at an exact ST row/column for the selected task in simulation STOP/HALT. Preserve existing points.',
+  {...debugging,object_guid:guid,line:z.number().int().min(1).max(1000000),column:z.number().int().min(1).max(32767).optional(),task_guid:guid},
+  (args:any)=>reply(()=>session.call({operation:'set_breakpoint',...args})));
+api.tool('invt_list_breakpoints','Read application breakpoints and distinguish session-owned points; no modification.',
+  debugging,(args:any)=>reply(()=>session.call({operation:'list_breakpoints',...args})));
+api.tool('invt_remove_breakpoint','Remove only a breakpoint_id created by this MCP session. No clear-all or foreign removal.',
+  {...debugging,breakpoint_id:guid},(args:any)=>reply(()=>session.call({operation:'remove_breakpoint',...args})));
+api.tool('invt_get_debug_state','Read fresh HALT/RUN/STOP, source and stack. Mapped unique frames include expiring frame_id values for read-only locals.',
+  debugging,(args:any)=>reply(()=>session.call({operation:'debug_state',...args})));
+api.tool('invt_read_frame_variables','Read named values in a current HALT frame; frame_id expires on step/resume/source/session change. Reject repeated POU frames; release only own watches.',
+  {...debugging,frame_id:guid,variables:z.array(variable).min(1).max(8)},
+  (args:any)=>reply(()=>session.call({operation:'read_frame_variables',...args})));
+api.tool('invt_create_trace','Create an owned trace configuration offline in verified simulation. No runtime download/start, no auto_start. Choose cyclic task and distinct application variable paths.',
+  {...runtime,name:z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/).optional(),task_guid:guid,
+   variables:z.array(variable).min(1).max(8),every_n_cycles:z.number().int().min(1).max(1000).optional()},
+  (args:any)=>reply(()=>session.call({operation:'create_trace',...args})));
+api.tool('invt_capture_trace','Bounded runtime trace in explicit simulation RUN. Current debug_id required. Export samples/CSV, report overflow, delete only own runtime packet; no application auto-start/resume.',
+  {...debugging,trace_id:guid,duration_ms:z.number().int().min(100).max(10000)},
+  (args:any)=>reply(()=>session.call({operation:'capture_trace',...args})));
+api.tool('invt_list_traces','List only trace configurations/packet ownership created by this session in the selected simulation application.',
+  runtime,(args:any)=>reply(()=>session.call({operation:'list_traces',...args})));
+api.tool('invt_delete_trace','Delete only a session-owned trace configuration after selective packet cleanup; refuse foreign packet replacement/adoption.',
+  {...runtime,trace_id:guid},(args:any)=>reply(()=>session.call({operation:'delete_trace',...args})));
+api.tool('invt_debug_continue','Explicitly continue from STOP/HALT using the verified Core API; read back RUN/HALT/STOP. Never implicitly resume during cleanup.',
+  debugging,(args:any)=>reply(()=>session.call({operation:'debug_continue',...args})));
+api.tool('invt_debug_step','Execute one verified step into/over/out from HALT with fixed command GUID and enabled-state checks; no arbitrary command.',
+  {...debugging,kind:z.enum(['into','over','out'])},(args:any)=>reply(()=>session.call({operation:'debug_step',...args})));
 api.tool('invt_close_project', 'Save and close this session project; keep Studio and IPC running.', {},
   ()=>reply(()=>session.call({operation:'close_project'})));
 api.tool('invt_session_stop', 'Save the owned project and close only the owned Studio process.', {}, ()=>reply(()=>session.stop()));
@@ -109,7 +143,7 @@ let stopping = false;
 async function shutdown() {
   if(stopping)return;
   stopping=true;
-  try { await session.stop(); } catch(e) { console.error(String(e)); }
+  try { await session.stop(true); } catch(e) { console.error(String(e)); }
   process.exit(0);
 }
 process.stdin.once('end',shutdown);

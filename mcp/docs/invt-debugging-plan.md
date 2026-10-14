@@ -21,7 +21,9 @@ this scope. Resume phase 5 only after the user reports that the PLC is available
 and explicitly requests that phase with a specified stand and action scope.
 Lack of physical hardware must not block completion of simulation acceptance.
 Connection-loss, reconnect and force-cleanup tests are simulation-only.
-Breakpoints, stepping and trace (phase 6) are local API research only.
+Phase 6 now includes the delivered v0.5 basic breakpoint/stepping bridge below.
+Public v0.6 now delivers current-frame locals and bounded trace; see the final
+simulation acceptance below. Repeated/recursive frame selection is explicitly refused.
 
 ## Execution order and acceptance
 
@@ -72,7 +74,7 @@ Progress is updated after evidence, not after code is merely written.
 | 4: ST scenarios | Complete | Actual MCP suite passed: absent permission, normal loading, sensor TON timeout, fault/reset, deliberately missing interlock detected, correct implementation restored and assertion rerun; same Studio PID and source unchanged |
 | 7: skill/Git | Complete | Source/installed skill synchronized and validated; capability matrix and sanitized validation summary maintained; related changes committed in invt-simulation-debugging |
 | 5: physical TM750 | Deferred: PLC unavailable | Do not execute hardware-dependent work until the PLC is available and the user requests this phase; no physical runtime operations performed. Not required for simulation acceptance |
-| 6: full debugger | Feasibility proved; production extension pending | Core breakpoint hit, step into/over/out, source GUID/position and stack depth, selective clearing and STOP from HALT proved in simulation. Generic line mapping, versioned handles, task/watchdog tests and public tools remain pending; see invt-debugger-research.md |
+| 6: simulation debugger | Complete within verified simulation API limits | 44 fixed tools; breakpoints/steps/source-mapped stack, current-frame locals, bounded trace, selective cleanup and loss/recovery verified. Repeated recursive frames refused; hardware debugging deferred |
 
 Detailed local evidence: `analysis/runtime-api-probe.json` and
 `analysis/persistent-runtime-result.json` (latest live attempt; do not treat a
@@ -133,6 +135,120 @@ Evidence: `analysis/persistent-chat-runtime-result.json` and
 `docs/invt-debug-chat-validation-2026-10-14.json`. The earlier JSON summary's
 12-tool registry is historical (before reconnect). No additional physical-mode
 implementation is needed or authorized while the PLC is unavailable. Phase 6
-is now reopened for alternative API research described in
-[invt-debugger-research.md](invt-debugger-research.md). No production debugger
-tools have been added just because core methods were discovered.
+was reopened for alternative API research described in
+[invt-debugger-research.md](invt-debugger-research.md). The accepted v0.5 extension
+is documented below; this direct-chat acceptance remains a historical v0.4 result.
+
+## Phase 6 implementation, 2026-10-14
+
+- [x] Resolve readable TextDocument and 1-based source row/native-column mapping;
+  comments/blank lines, Unicode and two statements on one row tested.
+- [x] Bind debugger handles to target/project/app, source text and document line IDs,
+  tasks/libraries, compiled/downloaded CodeId/DataId and runtime connection session.
+- [x] Register and separately activate BPManager points; refuse ambiguous locations,
+  foreign collisions and non-owned removal. No arbitrary command interface.
+- [x] Exercise added eight tools over real stdio MCP (39-tool candidate), step
+  over/into/out across PROGRAM/FB, source-mapped frames and qualified variable values.
+- [x] Repeat continue/re-hit; stale source (including equal-text restore), old generation,
+  unexpected logout, retained ownership, explicit Keep cleanup and new generation tested.
+- [x] Two-task observation: auxiliary task continues during MainTask HALT. Initial
+  450 ms halt exceeds its 100 ms watchdog without exception; not physical proof.
+- [x] Finish foreign-point lifecycle acceptance with an explicit STOP policy.
+  Tracing located exception at Core Stop from HALT with active runtime points,
+  before logout. Deactivation before STOP permits remaining-cycle execution.
+  Caller must choose finish_cycle or abort_cycle; HALT disconnect/close/shutdown
+  otherwise refuse without mutation. No blanket watchdog-off restriction.
+- [x] Refusal preserves project/session and variable values. Explicit finish_cycle,
+  foreign-definition preservation, selective cleanup, Keep reattach and graceful
+  exit passed in the final 102-call/probe stdio suite. Abort needs explicit recovery.
+- [x] Native owner crash and stdin EOF from HALT end only the test-owned Studio;
+  source fixture and saved copy remain. EOF acknowledges cleanup. Owner crash
+  exits without acknowledgement: graceful cleanup/post-crash values are not proven.
+  The 30-second guardian timeout branch itself was not exercised by these exits.
+- [x] Public current-frame handles and nested calls; repeated recursive METHOD frames
+  explicitly refuse ambiguous selection. UI selected-frame mutation remains out of scope.
+- [x] Native feasibility: read stack-relative input/local values in nested functions,
+  same input name with different caller/callee values, and remaining caller after return.
+- [x] Native trace creation/configuration, simulation recording and CSV export with
+  cycle/value assertions. Await actual START/STOP rather than immediate cached flags.
+- [x] Public frame-local API: bind frame handles to a halt epoch and validate source,
+  code/session identity; reject stale handles after step/resume, unknown/optimized-out
+  variables and ambiguous repeated POU/recursive frames; release only owned watches.
+- [x] Public trace API: own recording/configuration and packet, code/target identity,
+  bounded duration/buffer, state polling, typed/timestamped export, selective cleanup,
+  connection-loss behavior and foreign-recording preservation.
+- [ ] Client registry refresh: this chat still sees 31, while fresh stdio v0.6
+  exposes 44. Do not label independent tests as direct chat acceptance.
+
+Native failed acceptance reports are not passes. Physical PLC work remains deferred.
+Evidence: analysis/persistent-debugger-result.json and
+docs/invt-debugger-validation-2026-10-14.json. This chat still needs reconnect to
+replace the cached 31-tool registry with the verified 44-tool server.
+
+## v0.5 publication
+
+The earlier Skills PR was merged and its owner moved INVTmatic to the standalone
+[IlistTeam/invtmatic-studio](https://github.com/IlistTeam/invtmatic-studio) repository.
+The v0.5 update is [PR 1](https://github.com/IlistTeam/invtmatic-studio/pull/1),
+branch codex/simulation-debugger-v05. The user-selected installation/workspace
+instructions introduced after that move are preserved. Portable native acceptance
+passed 102 calls/probes; the standalone build matches its 14 runtime files
+(except harmless trailing blank lines in one Python file). See
+[invt-package-debugger-validation-2026-10-14.json](invt-package-debugger-validation-2026-10-14.json).
+Source/installed skill validators pass; fallback scripts and MCP config retain
+baseline hashes. Physical actions remain zero.
+
+Both Windows CI runs passed on publication commit e7dda84:
+[PR checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546901201)
+and [branch checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546894532).
+They build the standalone package and execute all 30 host checks.
+
+## Advanced research acceptance
+
+The fixed nested-function/trace experiment passed 23 actual MCP calls and five
+private probes. Data and current/remaining frame values are asserted; source is
+unchanged and Studio exits gracefully. No public tool count or runtime behavior
+was changed. The updated skill and probes are published on commit 08b5818 in the
+same standalone PR. Both Windows host checks passed:
+[PR](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38549910989) and
+[branch](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38549905333).
+See [advanced research](invt-advanced-debugger-research.md) and its
+[sanitized acceptance](invt-advanced-debugger-validation-2026-10-14.json).
+
+## Final simulation scope, MCP v0.6
+
+- [x] Five new fixed tools accepted through real stdio MCP: frame-local reads and
+  trace create/capture/list/delete. Extended acceptance: 58 tool calls and 7 fixtures.
+- [x] Stale frames after rapid native continue/re-hit, step, return and reconnect;
+  current nested caller/callee values, bad variables/IDs and explicit recursive refusal.
+- [x] Trace bounds, repeated captures, selective packet cleanup, foreign recording
+  preservation, unexpected logout with retained ledger and explicit Keep recovery.
+- [x] Recursive METHOD fixture: repeated compiled POU frames receive no handles.
+- [x] Legacy regression: 102 debugger calls/probes and 116 runtime calls, including
+  intentional interlock failure detection and restoration. All 44 host checks pass.
+- [x] Owner crash and stdin EOF during confirmed trace recording: owned IDE exits,
+  input fixture and saved copy remain. Crash does not establish graceful cleanup.
+- [x] Source/installed/portable skill validated; backup and config hashes unchanged.
+- [x] Standalone package: 58 MCP calls + 7 fixtures, 44-tool registry, graceful exit,
+  44 host checks and npm audit zero. 15 of 16 runtime files match development after
+  trailing-blank normalization; ipc.js intentionally uses crypto.randomUUID.
+- [x] GitHub PR updated to v0.6; both Windows CI runs passed on 83f02f3.
+
+Phase 6's supported simulation scope is implemented and verified. Known API limits
+are explicit refusals, not untested promises. Phase 5 remains deferred. Native
+testing does not validate physical I/O, Modbus peers or EtherCAT servo execution.
+See [v0.6 acceptance](invt-v06-validation-2026-10-14.json). Historical v0.5
+reports retain their original counts and research-only boundary.
+
+Portable acceptance: [invt-package-v06-validation-2026-10-14.json](invt-package-v06-validation-2026-10-14.json). Native owner crash/EOF from HALT also passed on the current build.
+
+## v0.6 publication completion
+
+Published [PR 1](https://github.com/IlistTeam/invtmatic-studio/pull/1), implementation
+commit 83f02f34b368a301179ce8c7f4ea557ec4954247. Both Windows CI checks passed:
+[PR](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566780323) and
+[push](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566774998).
+The available simulation plan is complete. The remaining external actions are
+refreshing the existing Codex MCP/client registry (31 cached versus 44 fresh) and,
+once requested with available hardware, phase 5 physical validation.
+No automatic client restart or physical PLC operation was performed.

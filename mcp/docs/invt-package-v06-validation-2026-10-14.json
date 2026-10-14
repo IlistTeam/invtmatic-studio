@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-14",
+  "version": "0.6.0",
+  "tool_count": 44,
+  "scope": "Standalone package native advanced acceptance only; earlier development regression is separately recorded",
+  "mcp_calls": 58,
+  "fixed_fixtures": 7,
+  "passed": true,
+  "graceful_shutdown": true,
+  "source_fixture_unchanged": true,
+  "host_checks": 44,
+  "npm_audit_vulnerabilities": 0,
+  "skill_validator": "passed",
+  "runtime_equivalence": {
+    "compared_files": 16,
+    "equal_except_trailing_blank_lines": [
+      "invt-server.js",
+      "invt-session.js",
+      "logger.js",
+      "script-manager.js",
+      "types.js",
+      "scripts/invt_creation.py",
+      "scripts/invt_debugger.py",
+      "scripts/invt_executor.py",
+      "scripts/invt_frames.py",
+      "scripts/invt_operations.py",
+      "scripts/invt_project.py",
+      "scripts/invt_runtime.py",
+      "scripts/invt_tasks.py",
+      "scripts/invt_trace.py",
+      "scripts/invt_watcher.py"
+    ],
+    "intentional_difference": "ipc.js uses crypto.randomUUID in place of uuid v4; dependency lock retained and actual stdio test passes"
+  },
+  "compiled_runtime_sha256": {
+    "invt-server.js": "f17a54a79dec8b6c5b0cf5a7186316b3e542dbd3d4362a0d219d133949b2dd36",
+    "invt-session.js": "2660fa66fd88859738cab2ea108117643649c621c37b2b68cc5370ac03c35b8c",
+    "ipc.js": "19a5d7aa1414b9bb15e1c6be4b56d5775d5b1b37fccb4caa9dea64b579e41dac",
+    "logger.js": "e28c086b2b01d22ce540b2a214ff9562dfe8c4ead2b10f9f9f66542cc088da35",
+    "script-manager.js": "a2a97da30d44a59bf842c716926e60e952af6094e501b8c6fa255455200b2aab",
+    "types.js": "56ef3a2ac7f9bb0a1d5fbb0dfda29d5e7a1beefbad8caa483f43ed816454f213",
+    "scripts/invt_creation.py": "c175a1450c10357fe6cacb30b81fa2b13816fdba182356e887d404e60e22bc51",
+    "scripts/invt_debugger.py": "79d65dd490c01260439d73224a348ba21c6455912fa72459e0dbaad75eebe407",
+    "scripts/invt_executor.py": "21046384a94f144ddee7bf397175f74f98a2040b9cd43617d1abf8edb0a5e515",
+    "scripts/invt_frames.py": "47ecbf5c30b0918ebcfd9b7f61492378f5b81c596aaf4d70d3e5d4ebbbb3bb77",
+    "scripts/invt_operations.py": "c34909292be8fba41c35e65b64604c02929e69440f576fe886b3031221532dd0",
+    "scripts/invt_project.py": "4f3de50c7f692335c8831c6f32c34465c504e64b22786e51be362cb22bf2e7cd",
+    "scripts/invt_runtime.py": "5a32f2547b02a29583d2a7db103b30649032bfea4badfbf802b7e9d33890f7cd",
+    "scripts/invt_tasks.py": "f63f769c2f7351b09d8f1f8f2d84dbd26b132ce02953c1e30e81831dd83a9110",
+    "scripts/invt_trace.py": "b900c5480ab44fd1c5ef4e876af73a2ab8cdefbca80a3c1cae84c0de6f01d661",
+    "scripts/invt_watcher.py": "22cf1601dc7d4ec925c4c5919aede5668e2388caf84a7e4a5b7ddcfd72b279f1"
+  }
+}

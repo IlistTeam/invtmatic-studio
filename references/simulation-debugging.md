@@ -110,15 +110,13 @@ session shutdown reports that error and ends only its owned Studio; a foreign
 project in the window is preserved. Forced process termination/owner crash cannot
 guarantee graceful unforce and is not a physical runtime recovery procedure.
 
-Breakpoints, line stepping, call stack and runtime trace are not exposed by this
-production MCP. A separate fixed simulation prototype proved core breakpoint hit,
-step into/over/out, source GUID/position, stack depth and direct Core STOP from HALT;
-see the MCP's docs/invt-debugger-research.md. Its internal API is version-sensitive,
-and generic line mapping/task-watchdog validation and public tools remain pending.
-Ordinary ScriptOnline start waits for RUN and may time out on an immediate breakpoint;
-its stop rejects HALT. Do not use the ordinary runtime tools as a full debugger or
-silently resume halted code during cleanup. A separate trace plugin exists but its
-data capture has not been tested. Enum names or system.trace script echo alone do
-not establish debugging functionality. Do not install a runtime/DAP substitute
-automatically. Evidence/matrix live in the MCP repository docs and ignored local
-analysis reports; verify the latest report passed before claiming acceptance.
+MCP v0.5 adds version-gated breakpoints, implementation row/column mapping,
+step into/over/out and stack observation; follow
+[breakpoint-debugging.md](breakpoint-debugging.md), not ordinary ScriptOnline
+start/stop wrappers. HALT is task-specific; other tasks and software feedback may
+continue. MCP v0.6 adds frame-local reads and task trace capture/export; read
+[advanced-debugging.md](advanced-debugging.md) for tested limits, ownership and
+loss/recovery. Enum names/system.trace echo alone do not prove functionality.
+Do not install a runtime/DAP substitute automatically.
+Evidence and remaining work live in the MCP docs and local analysis reports;
+verify a report passed before claiming acceptance.

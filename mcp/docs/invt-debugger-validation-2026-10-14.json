@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-14",
+  "server_version": "0.5.0",
+  "passed": true,
+  "registered_tools": 39,
+  "calls_and_probes": 102,
+  "mcp_calls": 93,
+  "core_online_manager_version": "3.5.20.61",
+  "breakpoints_plugin_version": "3.5.20.60",
+  "task_halt": {
+    "pause_ms": 450,
+    "watchdog_ms": 100,
+    "other_task_continues": true,
+    "debugged_task_paused": true,
+    "exception_active": false
+  },
+  "shutdown": {
+    "ok": true,
+    "graceful": true,
+    "forced_termination": false,
+    "runtime_cleanup_confirmed": true,
+    "cleanup_error": null
+  },
+  "checks": [
+    "Exact 1-based implementation rows/native columns, Unicode/comment/blank/multiple-statement positions",
+    "Owned activation/removal and preservation of foreign definitions",
+    "Over/into/out PROGRAM-FB with source-mapped frames and counter assertions",
+    "Repeated Continue/re-hit",
+    "Text/document-ID/code/target/connection generation guards",
+    "Unexpected logout retains ownership; explicit Keep cleanup and fresh generation",
+    "HALT pauses one task; other task/software feedback runs",
+    "HALT close/session-stop refused without mutation; explicit finish_cycle then graceful shutdown"
+  ],
+  "node_host_tests": 9,
+  "python_runtime_guards": 7,
+  "python_debugger_guards": 14,
+  "current_chat_registry": 31,
+  "reconnect_required": true,
+  "frame_locals_supported": false,
+  "trace_capture_tested": false,
+  "physical_actions": 0,
+  "source_fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d"
+}

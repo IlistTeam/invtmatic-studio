@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-14",
+  "scope": "Fixed advanced research in owned TM750 copy; no new public MCP tools",
+  "passed": true,
+  "chat_registry": 31,
+  "independent_server": {
+    "name": "invtmatic-persistent",
+    "version": "0.5.0"
+  },
+  "independent_tool_count": 39,
+  "mcp_calls": 23,
+  "private_probes": 5,
+  "locals": {
+    "before_step": [
+      [
+        "F_INNER",
+        "iValue",
+        107
+      ],
+      [
+        "F_INNER",
+        "nInnerLocal",
+        1107
+      ],
+      [
+        "F_OUTER",
+        "iValue",
+        7
+      ],
+      [
+        "F_OUTER",
+        "nOuterLocal",
+        107
+      ]
+    ],
+    "after_inner_return": [
+      [
+        "F_OUTER",
+        "iValue",
+        7
+      ],
+      [
+        "F_OUTER",
+        "nOuterLocal",
+        107
+      ]
+    ],
+    "stack_relative": true,
+    "all_states_good": true,
+    "watches_released": true,
+    "recursive_frame_selection_tested": false,
+    "public_frame_handles_implemented": false
+  },
+  "trace": {
+    "samples": 33,
+    "cycle_increments": 1,
+    "result": 2215,
+    "start_stop_confirmed": true,
+    "task": "MainTask",
+    "auto_start": false,
+    "exported_csv": true,
+    "public_tools_implemented": false,
+    "selective_runtime_packet_cleanup_tested": false,
+    "wrapper_assembly": "ScriptDriverTraceObject.plugin",
+    "wrapper_version": "4.2.0.0"
+  },
+  "source_unchanged": true,
+  "source_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "shutdown": {
+    "ok": true,
+    "graceful": true,
+    "forced_termination": false,
+    "runtime_cleanup_confirmed": true,
+    "cleanup_error": null
+  },
+  "physical_actions": 0,
+  "probe_sha256": "642deaddff1f4551b52247038f4d81636bb032b48d56f73ca62e3e1b6f1ed179",
+  "test_sha256": "939b9af6c4cfed605d772b460306799e3620706458bf2a9942c831052c1c74d9"
+}
