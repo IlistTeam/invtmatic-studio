@@ -74,7 +74,7 @@ Progress is updated after evidence, not after code is merely written.
 | 4: ST scenarios | Complete | Actual MCP suite passed: absent permission, normal loading, sensor TON timeout, fault/reset, deliberately missing interlock detected, correct implementation restored and assertion rerun; same Studio PID and source unchanged |
 | 7: skill/Git | Complete | Source/installed skill synchronized and validated; capability matrix and sanitized validation summary maintained; related changes committed in invt-simulation-debugging |
 | 5: physical TM750 | Deferred: PLC unavailable | Do not execute hardware-dependent work until the PLC is available and the user requests this phase; no physical runtime operations performed. Not required for simulation acceptance |
-| 6: simulation debugger | v0.6 native and portable acceptance passed; publication CI pending | 44 fixed tools; breakpoints/steps/source-mapped stack, current-frame locals, bounded trace, selective cleanup and loss/recovery verified. Repeated recursive frames refused; hardware debugging deferred |
+| 6: simulation debugger | Complete within verified simulation API limits | 44 fixed tools; breakpoints/steps/source-mapped stack, current-frame locals, bounded trace, selective cleanup and loss/recovery verified. Repeated recursive frames refused; hardware debugging deferred |
 
 Detailed local evidence: `analysis/runtime-api-probe.json` and
 `analysis/persistent-runtime-result.json` (latest live attempt; do not treat a
@@ -232,7 +232,7 @@ See [advanced research](invt-advanced-debugger-research.md) and its
 - [x] Standalone package: 58 MCP calls + 7 fixtures, 44-tool registry, graceful exit,
   44 host checks and npm audit zero. 15 of 16 runtime files match development after
   trailing-blank normalization; ipc.js intentionally uses crypto.randomUUID.
-- [ ] GitHub publication and final CI.
+- [x] GitHub PR updated to v0.6; both Windows CI runs passed on 83f02f3.
 
 Phase 6's supported simulation scope is implemented and verified. Known API limits
 are explicit refusals, not untested promises. Phase 5 remains deferred. Native
@@ -241,3 +241,14 @@ See [v0.6 acceptance](invt-v06-validation-2026-10-14.json). Historical v0.5
 reports retain their original counts and research-only boundary.
 
 Portable acceptance: [invt-package-v06-validation-2026-10-14.json](invt-package-v06-validation-2026-10-14.json). Native owner crash/EOF from HALT also passed on the current build.
+
+## v0.6 publication completion
+
+Published [PR 1](https://github.com/IlistTeam/invtmatic-studio/pull/1), implementation
+commit 83f02f34b368a301179ce8c7f4ea557ec4954247. Both Windows CI checks passed:
+[PR](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566780323) and
+[push](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566774998).
+The available simulation plan is complete. The remaining external actions are
+refreshing the existing Codex MCP/client registry (31 cached versus 44 fresh) and,
+once requested with available hardware, phase 5 physical validation.
+No automatic client restart or physical PLC operation was performed.

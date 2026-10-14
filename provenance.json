@@ -1,5 +1,5 @@
 {
-  "source_commit": "34bec268f5666b4d30851e7572e1c62082b4fcf2",
+  "source_commit": "723ec0023b9bf7bb600adf25f502b3f5fb91b227",
   "upstreams": {
     "codesys_mcp": {
       "repository": "https://github.com/luke-harriman/Codesys-MCP.git",
@@ -21,7 +21,7 @@
     "integration/codesys-mcp-invt/docs/invt-debug-validation-2026-10-14.json": "d13221d419c9959dcb1d3ad73347a7e052e3f9be36e9cacba00f4c6c5b5c29be",
     "integration/codesys-mcp-invt/docs/invt-debugger-proof-2026-10-14.json": "a028b62ac7bbeb42946610b7e97a6868d827e7c0f5b611bcc810d9184ec62442",
     "integration/codesys-mcp-invt/docs/invt-debugger-research.md": "fd00868492da2b4a2b33f3e962c89ac6771570bff021e91202ace3c08031c365",
-    "integration/codesys-mcp-invt/docs/invt-debugging-plan.md": "37322472ed5ee1a08b412db1dfa4bb82c40f0ae670c7da34a2f9bb46bc8f58bb",
+    "integration/codesys-mcp-invt/docs/invt-debugging-plan.md": "1565126e7f91cd58352a0f837f6e658f4e9659e5d3567103c8af3752d24a532a",
     "integration/codesys-mcp-invt/package-lock.json": "4386099162928121aed8b974a5d76538f671ae41268bdaf88d1df23a74773bda",
     "integration/codesys-mcp-invt/package.json": "a974612af1ef6c09accda1eb4ab521249f1969933ce2f031312f57867e495f1e",
     "integration/codesys-mcp-invt/src/invt-server.ts": "654faa371d05dc1c1c5d0e0d5d51a58a66dff83b6b87bce1031470939a30586b",
