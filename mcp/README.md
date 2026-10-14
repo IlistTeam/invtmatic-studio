@@ -8,7 +8,8 @@ npm ci --ignore-scripts
 npm run build
 npm test
 npm run test:guards
-node dist/invt-server.js --workspace E:\PLCProjects
+$projectRoot = (Resolve-Path -LiteralPath (Read-Host 'Рабочая папка проектов ПЛК')).Path
+node dist/invt-server.js --workspace $projectRoot
 ```
 
 Последняя команда запускает stdio MCP, который ожидает MCP-клиента; она не

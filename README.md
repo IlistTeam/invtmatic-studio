@@ -18,10 +18,11 @@ MCP создаёт собственное окно Studio и работает с
 На другом компьютере скопируйте этот промпт в чат Codex:
 
 ```text
-Установи навык invtmatic-studio вместе с постоянным MCP из https://github.com/IlistTeam/invtmatic-studio по инструкции README.md. Собери сервер, выполни тесты и зарегистрируй invtmatic-persistent в Codex для папки E:\PLCProjects. Сохрани остальные настройки Codex и проверь подключение MCP.
+Установи навык invtmatic-studio вместе с постоянным MCP из https://github.com/IlistTeam/invtmatic-studio по инструкции README.md. Сначала уточни у меня, где сохранить репозиторий с MCP и какую папку использовать для проектов ПЛК. Используй выбранные пути, без предположений о буквах дисков. Размести навык в действующем каталоге skills Codex с учётом CODEX_HOME. Собери сервер, выполни тесты и зарегистрируй invtmatic-persistent для выбранной папки проектов. Сохрани остальные настройки Codex и проверь подключение MCP.
 ```
 
-Замените `E:\PLCProjects` на свою папку проектов. Репозиторий публичный;
+Папка репозитория с MCP и рабочая папка проектов выбираются при установке.
+Репозиторий публичный;
 для обычного клонирования авторизация GitHub не требуется.
 
 ### Установка вручную
@@ -34,9 +35,12 @@ Node/npm и Codex. Для резервного адаптера и guard-тес�
 навыка в каталог навыков Codex. Пример PowerShell для **новой** установки:
 
 ```powershell
-git clone https://github.com/IlistTeam/invtmatic-studio.git C:\Tools\invtmatic-studio
-$packageRoot = 'C:\Tools\invtmatic-studio'
-$skillDestination = Join-Path $env:USERPROFILE '.codex\skills\invtmatic-studio'
+$packageRoot = Read-Host 'Полный путь к папке для репозитория и MCP'
+git clone https://github.com/IlistTeam/invtmatic-studio.git $packageRoot
+if ($LASTEXITCODE -ne 0) { throw 'Клонирование не выполнено' }
+$packageRoot = (Resolve-Path -LiteralPath $packageRoot).Path
+$codexRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
+$skillDestination = Join-Path $codexRoot 'skills\invtmatic-studio'
 if (Test-Path -LiteralPath $skillDestination) { throw 'Навык уже установлен: сначала сравните версии' }
 New-Item -ItemType Directory -Path $skillDestination -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $packageRoot 'SKILL.md') -Destination $skillDestination
@@ -45,8 +49,8 @@ foreach ($resource in @('agents', 'references', 'scripts')) {
 }
 ```
 
-Если используется собственный `CODEX_HOME`, укажите его каталог `skills` вместо
-пути по умолчанию. Код MCP остаётся в клоне; после регистрации этот клон нужен
+Каталог навыка определяется по `CODEX_HOME`, либо по профилю текущего пользователя.
+Код MCP остаётся в выбранном клоне; после регистрации этот клон нужен
 для запуска сервера. Не переносите его без обновления регистрации.
 
 Соберите MCP, используя lockfile:
@@ -59,28 +63,34 @@ npm test
 python tests/invt-runtime-guards.py
 ```
 
-Зарегистрируйте сервер для нужного рабочего каталога проектов. Замените путь
-проекта на свой; сервер не читает проекты за пределами этого каталога:
+Зарегистрируйте сервер для выбранного рабочего каталога проектов. Если папки ещё
+нет, пример создаст её. Сервер не читает проекты за пределами этого каталога:
 
 ```powershell
-$projectRoot = 'E:\PLCProjects'
+$projectRoot = Read-Host 'Полный путь к рабочей папке проектов ПЛК'
+if (-not (Test-Path -LiteralPath $projectRoot -PathType Container)) {
+    New-Item -ItemType Directory -Path $projectRoot -Force | Out-Null
+}
+$projectRoot = (Resolve-Path -LiteralPath $projectRoot).Path
 $nodeExecutable = (Get-Command node -CommandType Application).Source
 $serverEntrypoint = Join-Path $packageRoot 'mcp\dist\invt-server.js'
 codex mcp add invtmatic-persistent -- $nodeExecutable $serverEntrypoint --workspace $projectRoot
 ```
 
 Используется только `dist/invt-server.js`. Добавляйте или обновляйте одну секцию
-конфигурации, сохраняя остальные серверы. Пример эквивалентного TOML:
+конфигурации, сохраняя остальные серверы. Шаблон эквивалентного TOML: замените
+значения в угловых скобках фактическими путями из переменных выше.
 
 ```toml
 [mcp_servers.invtmatic-persistent]
-command = 'C:\Program Files\nodejs\node.exe'
-args = ['C:\Tools\invtmatic-studio\mcp\dist\invt-server.js', '--workspace', 'E:\PLCProjects']
+command = '<полный путь к node.exe>'
+args = ['<полный путь к invt-server.js>', '--workspace', '<полный путь к папке проектов ПЛК>']
 startup_timeout_sec = 30
 tool_timeout_sec = 180
 ```
 
-Путь Node в примере надо сверить с `$nodeExecutable`. При другой установке Studio
+Для `command` используйте `$nodeExecutable`, для `args` — `$serverEntrypoint` и
+`$projectRoot`. При другой установке Studio
 передайте `--exe` и `--profile` после проверки её окружения. Регистрация и MCP
 инициализация Studio не запускают. После изменения кода пересоберите сервер и
 переподключите MCP/чат: работающий процесс не перечитывает инструменты.
