@@ -13,6 +13,19 @@ MCP создаёт собственное окно Studio и работает с
 
 ## Установка
 
+### Короткий промпт для Codex
+
+На другом компьютере скопируйте этот промпт в чат Codex:
+
+```text
+Установи навык invtmatic-studio вместе с постоянным MCP из https://github.com/IlistTeam/Skills/tree/main/invtmatic-studio по инструкции README.md. Собери сервер, выполни тесты и зарегистрируй invtmatic-persistent в Codex для папки E:\PLCProjects. Сохрани остальные настройки Codex и проверь подключение MCP.
+```
+
+Замените `E:\PLCProjects` на свою папку проектов. Для приватного репозитория
+нужна авторизация GitHub с доступом к `IlistTeam/Skills`.
+
+### Установка вручную
+
 Нужны установленная Studio с ScriptEngine, интерактивный сеанс Windows, Git,
 Node/npm и Codex. Для резервного адаптера и guard-тестов нужен Python 3.10+.
 Используйте реальные интерпретаторы, а не Windows Store aliases.
