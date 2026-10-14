@@ -164,10 +164,39 @@ is documented below; this direct-chat acceptance remains a historical v0.4 resul
   source fixture and saved copy remain. EOF acknowledges cleanup. Owner crash
   exits without acknowledgement: graceful cleanup/post-crash values are not proven.
   The 30-second guardian timeout branch itself was not exercised by these exits.
-- [ ] Transient frame locals, selected-frame control, recursion and broader task cases.
-- [ ] Trace capture/analysis: API presence only; separate future implementation.
+- [ ] Public transient-frame handles/selected-frame API, recursion and broader task cases.
+- [x] Native feasibility: read stack-relative input/local values in nested functions,
+  same input name with different caller/callee values, and remaining caller after return.
+- [x] Native trace creation/configuration, simulation recording and CSV export with
+  cycle/value assertions. Await actual START/STOP rather than immediate cached flags.
+- [ ] Public frame-local API: bind frame handles to a halt epoch and validate source,
+  code/session identity; reject stale handles after step/resume, unknown/optimized-out
+  variables and ambiguous repeated POU/recursive frames; release only owned watches.
+- [ ] Public trace API: own recording/configuration and packet, code/target identity,
+  bounded duration/buffer, state polling, typed/timestamped export, selective cleanup,
+  connection-loss behavior and foreign-recording preservation.
+- [ ] All 39 tools directly in this chat: repeat still sees 31, while fresh stdio
+  exposes the same v0.5 server's 39. Do not label independent tests as chat acceptance.
 
 Native failed acceptance reports are not passes. Physical PLC work remains deferred.
 Evidence: analysis/persistent-debugger-result.json and
 docs/invt-debugger-validation-2026-10-14.json. This chat still needs reconnect to
 replace the cached 31-tool registry with the verified 39-tool server.
+
+## v0.5 publication
+
+The earlier Skills PR was merged and its owner moved INVTmatic to the standalone
+[IlistTeam/invtmatic-studio](https://github.com/IlistTeam/invtmatic-studio) repository.
+The v0.5 update is [PR 1](https://github.com/IlistTeam/invtmatic-studio/pull/1),
+branch codex/simulation-debugger-v05. The user-selected installation/workspace
+instructions introduced after that move are preserved. Portable native acceptance
+passed 102 calls/probes; the standalone build matches its 14 runtime files
+(except harmless trailing blank lines in one Python file). See
+[invt-package-debugger-validation-2026-10-14.json](invt-package-debugger-validation-2026-10-14.json).
+Source/installed skill validators pass; fallback scripts and MCP config retain
+baseline hashes. Physical actions remain zero.
+
+Both Windows CI runs passed on publication commit e7dda84:
+[PR checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546901201)
+and [branch checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546894532).
+They build the standalone package and execute all 30 host checks.

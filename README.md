@@ -154,11 +154,20 @@ Native-приёмка переносимого пакета прошла: 102 в
 39 инструментов и штатное закрытие. [Результат](mcp/docs/invt-package-debugger-validation-2026-10-14.json). Локальные переменные выбранных
 кадров и захват trace ещё не реализованы; весь этап 6 не считается завершённым.
 
+Следующая исследовательская проверка также прошла: 23 вызова MCP и 5 фиксированных
+проб. Прочитаны локальные значения вложенных функций до/после возврата; записан
+runtime trace с подтверждёнными START/STOP и CSV-экспортом (33 отсчёта двух сигналов).
+Это подтверждает API установки; публичных инструментов locals/trace ещё нет.
+Нужны защита поколений кадров, рекурсивные/оптимизированные значения и выборочная
+очистка собственных trace-пакетов. [Подробности](mcp/docs/invt-advanced-debugger-research.md),
+[приёмка](mcp/docs/invt-advanced-debugger-validation-2026-10-14.json).
+
 Native-приёмка отладки на копии fixture:
 
 ```powershell
 node tests/invt-debugger-live.cjs
 node tests/invt-debugger-lifecycle.cjs
+node tests/invt-advanced-debugger-research.cjs
 ```
 
 Старая [native-проверка v0.4](mcp/docs/invt-package-validation-2026-10-14.json)

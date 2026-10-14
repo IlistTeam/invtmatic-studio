@@ -101,5 +101,8 @@ graceful process exit separately; forced termination does not prove graceful exi
 On actual MCP owner loss/EOF the recovery policy aborts the halted cycle, attempts
 owned cleanup and can forcibly terminate its own IDE; it never finishes code implicitly.
 
-Trace capture remains untested. Evidence and remaining work are in the MCP's
-docs/invt-debugger-research.md and docs/invt-debugging-plan.md.
+Native research has now read stack-relative values in two nested functions and
+captured runtime trace to CSV in simulation. These are developer proofs, not new
+public MCP tools. Stable selected-frame handles, recursive/optimized locals,
+trace packet ownership/cleanup and connection-loss cases remain pending. Read
+[advanced-debugging.md](advanced-debugging.md) for the exact current boundary.

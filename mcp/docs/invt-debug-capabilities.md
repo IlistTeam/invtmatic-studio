@@ -29,7 +29,8 @@ and the owning-device getter distinguish IDE simulation from physical target dat
 | Breakpoints/line stepping/stack | v0.5 real stdio acceptance passed: exact implementation row/column, BPManager registration+activation, over/into/out across PROGRAM→FB, mapped source/frames, re-hit, stale-source/code/connection handles and owned cleanup. Transient frame locals not implemented |
 | HALT, tasks and STOP | HALT pauses only the debug task; auxiliary task and software feedback continue. 100 ms watchdogs/450 ms pause tested in simulation. STOP from HALT requires explicit finish_cycle (remaining statements execute) or abort_cycle (can cause exception STOP). No default; disconnect/close/shutdown refuse HALT without an explicit choice |
 | Foreign breakpoints and lifecycle | Definitions preserved, foreign collisions/removal refused; explicit cycle finish before STOP, selective owned cleanup, Keep recovery and graceful IDE exit passed. Earlier Core STOP with active points generated exception; deactivation before STOP finishes the cycle and is not hidden cleanup |
-| Runtime trace | Separate scriptengine.trace.create exists in installed trace plugin; presence confirmed, capture/analysis not tested or exposed |
+| Transient function locals | Native research reads stack-relative values with Good status in F_Inner and its caller F_Outer, including different values of the same input name. After return only the remaining caller frame is read. No public frame-local tool, stable frame handle or recursive-frame proof yet |
+| Runtime trace | Native research created/configured its own trace, downloaded/started/stopped it in verified simulation and exported CSV with changing cycle count and expected nested-function output. START/STOP status requires polling. No public trace tool or selective runtime-packet cleanup proof yet |
 | system.trace | Script command echo, not PLC trace; deliberately excluded |
 | Reset, source/boot download, remote files, online change | Some generic APIs exist, not included/tested in this scope |
 | Physical TM750 | Not tested, not enabled; actual firmware/hardware/communication/servo models remain unknown |
@@ -43,6 +44,9 @@ Direct chat evidence after reconnect is in
 `analysis/persistent-chat-runtime-result.json`; its sanitized summary is
 `docs/invt-debug-chat-validation-2026-10-14.json`. The earlier independent-stdio
 JSON registry count of 12 described the chat before reconnect.
+The latest repeat still discovers 31 tools in this chat and 39 in a fresh stdio
+client. Research evidence for locals/trace is separate from public tool support;
+see [invt-advanced-debugger-research.md](invt-advanced-debugger-research.md).
 Host guard tests cover mode/token mismatch, target drift, foreign preparations,
 selective force preservation and lost connection retaining cleanup ownership.
 

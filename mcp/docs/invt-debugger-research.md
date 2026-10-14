@@ -1,5 +1,15 @@
 # Phase 6: alternative debugger APIs in INVTmatic
 
+## Latest advanced research
+
+The next native experiment now proves stack-relative values in nested FUNCTION
+frames and runtime trace recording/CSV export in simulation. Public tools remain
+the v0.5 set of 39; general frame handles and trace lifecycle tools are pending.
+See [invt-advanced-debugger-research.md](invt-advanced-debugger-research.md) and
+[invt-advanced-debugger-validation-2026-10-14.json](invt-advanced-debugger-validation-2026-10-14.json).
+Earlier statements about untested trace/locals below describe the v0.5 initial
+release, not this newer native research.
+
 ## v0.5 implementation update
 
 The guarded eight-tool bridge is implemented in src/scripts/invt_debugger.py and
