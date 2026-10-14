@@ -1,5 +1,10 @@
 # Phase 6: frame-local values and runtime trace
 
+Current status: public MCP v0.6 now delivers frame locals and four trace tools.
+The research-only statements below describe the earlier v0.5 state; see
+[v0.6 acceptance](invt-v06-validation-2026-10-14.json) for the delivered boundary.
+
+
 Research on 2026-10-14 uses only an owned TM750 fixture copy and positively
 verified Studio simulation. The public v0.5 MCP still has 39 fixed tools and does
 not expose frame-local reads or trace. This chat's repeated discovery returns 31,

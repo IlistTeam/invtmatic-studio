@@ -1,7 +1,7 @@
 # INVTmatic Studio: навык и постоянный MCP
 
 Пакет для разработки IEC 61131-3 ST в INVTmatic Studio: навык Codex,
-39 инструментов постоянного MCP, сохранённый резервный Python-адаптер и тесты.
+44 инструмента постоянного MCP (v0.6), сохранённый резервный Python-адаптер и тесты.
 Проверено на Windows с INVTmatic Studio V3.0.1.4, CODESYS core 3.5.20.60,
 OnlineManager 3.5.20.61, Breakpoints 3.5.20.60, ScriptEngine 4.1.0.0, Node 24.19.0. На другой установке сначала проверьте
 [совместимость](references/environment.md). Studio и её библиотеки в пакет не входят.
@@ -10,7 +10,9 @@ MCP создаёт собственное окно Studio и работает с
 редактирование/компиляция/экспорт ST, создание POU/GVL/DUT, циклических задач и
 привязок программ, а также запуск и наблюдение **положительно проверенной симуляции**.
 Восемь новых инструментов добавляют точки останова, позиции ST, состояние/стек
-и Step Into/Over/Out. Управление физическим ПЛК и сетевой поиск не реализованы.
+и Step Into/Over/Out. Ещё пять инструментов читают локальные значения текущих
+кадров и создают/записывают/перечисляют/удаляют trace. Управление физическим ПЛК
+и сетевой поиск не реализованы.
 
 ## Установка
 
@@ -99,7 +101,7 @@ tool_timeout_sec = 180
 
 ## Первый цикл работы
 
-Попросите Codex использовать `$invtmatic-studio`. Проверьте наличие 39 инструментов
+Попросите Codex использовать `$invtmatic-studio`. Проверьте наличие 44 инструментов
 в пространстве `invtmatic-persistent`. Начните с `invt_session_status`, затем
 `invt_session_start`, `invt_open_copy`, `invt_inspect` и базовой компиляции.
 Для симуляции следуйте [отдельной процедуре](references/simulation-debugging.md):
@@ -113,7 +115,7 @@ tool_timeout_sec = 180
 
 ## Проверки и этап 6
 
-В обычных host-тестах Studio не запускается: 9 тестов сессии, 7 runtime и 14 debugger guard-тестов.
+В обычных host-тестах Studio не запускается: 44 проверки: 9 сессии, 7 runtime, 14 debugger и 14 frames/trace.
 CI выполняет только эти проверки и сборку на Windows. Native-тесты в `mcp/tests`
 требуют Studio; запускайте их отдельно на включённой интерактивной Windows-сессии.
 Включённая копия `analysis/side-scriptengine-check/API_Check_v6.project` — тестовый
@@ -150,28 +152,34 @@ STOP из HALT требует явного `halt_behavior`: `finish_cycle` ра�
 [исследование](mcp/docs/invt-debugger-research.md),
 [приёмка](mcp/docs/invt-debugger-validation-2026-10-14.json),
 [план](mcp/docs/invt-debugging-plan.md).
-Native-приёмка переносимого пакета прошла: 102 вызова/пробы,
-39 инструментов и штатное закрытие. [Результат](mcp/docs/invt-package-debugger-validation-2026-10-14.json). Локальные переменные выбранных
-кадров и захват trace ещё не реализованы; весь этап 6 не считается завершённым.
+MCP v0.6 проверен в отдельной копии TM750: локальные значения вложенных
+функций до/после возврата, отказ старым дескрипторам даже при быстром повторном
+попадании на ту же точку, запись trace с CSV-экспортом, выборочная очистка,
+сохранение чужой записи и явное восстановление после потери связи.
+Повторные рекурсивные кадры явно отклоняются: API не выбирает вызов однозначно.
+Удаление конфигурации trace требует disconnect; MCP не выполняет logout молча.
 
-Следующая исследовательская проверка также прошла: 23 вызова MCP и 5 фиксированных
-проб. Прочитаны локальные значения вложенных функций до/после возврата; записан
-runtime trace с подтверждёнными START/STOP и CSV-экспортом (33 отсчёта двух сигналов).
-Это подтверждает API установки; публичных инструментов locals/trace ещё нет.
-Нужны защита поколений кадров, рекурсивные/оптимизированные значения и выборочная
-очистка собственных trace-пакетов. [Подробности](mcp/docs/invt-advanced-debugger-research.md),
-[приёмка](mcp/docs/invt-advanced-debugger-validation-2026-10-14.json).
+Проверки разработки: 44 host-теста, 58 новых MCP-вызовов и 7 фиксированных проб;
+регрессия 102 debugger и 116 runtime. Авария владельца и EOF во время записи
+trace проверены отдельно. [Приёмка v0.6](mcp/docs/invt-v06-validation-2026-10-14.json).
+Проверка переносимого пакета и текущий выпуск отмечаются в
+[плане](mcp/docs/invt-debugging-plan.md). Прежние отчёты v0.4/v0.5 сохранены
+как исторические результаты со своими исходными версиями и числами.
 
-Native-приёмка отладки на копии fixture:
+Native-приёмка на копии fixture (из папки mcp, нужна установленная Studio):
 
 ```powershell
 node tests/invt-debugger-live.cjs
-node tests/invt-debugger-lifecycle.cjs
-node tests/invt-advanced-debugger-research.cjs
+node tests/invt-runtime-live.cjs
+node tests/invt-advanced-live.cjs --extended
+node tests/invt-recursive-frames-live.cjs
+node tests/invt-debugger-lifecycle.cjs --trace
 ```
 
-Старая [native-проверка v0.4](mcp/docs/invt-package-validation-2026-10-14.json)
-с 31 инструментом сохранена как историческая запись, а не результат v0.5.
+Перед чтением кадров или trace следуйте
+[advanced-debugging.md](references/advanced-debugging.md). В обновлённом сервере
+44 инструмента; старый чат может показывать 31 до обновления соединения/реестра.
+Симуляция не проверяет реальные I/O, Modbus-устройства или EtherCAT-сервоприводы.
 
 Происхождение исходников и контрольные суммы — в [provenance.json](provenance.json).
 MCP адаптирован из luke-harriman/Codesys-MCP; его [MIT license](mcp/LICENSE) сохранена.

@@ -21,7 +21,7 @@ function verifyTrace(capture){
  assert.ok(results.every(s=>s[1]===2215));report.trace_assertions={samples:cycles.length,cycle_increments:1,result:2215,start_stop_confirmed:true};
 }
 (async()=>{try{
- await client.connect(transport);report.tool_count=(await client.listTools()).tools.length;assert.equal(report.tool_count,39);report.server=client.getServerVersion();
+ await client.connect(transport);report.tool_count=(await client.listTools()).tools.length;assert.equal(report.tool_count,44);report.server=client.getServerVersion();
  const started=await call('invt_session_start');managed=true;directory=started.directory;fs.copyFileSync(path.join(__dirname,'probes/invt_advanced_debugger_probe.py'),path.join(directory,'invt_advanced_debugger_probe.py'));
  await call('invt_open_copy',{project:'analysis/side-scriptengine-check/API_Check_v6.project'});
  const inspected=await call('invt_inspect'),app=inspected.objects.find(o=>o.application).guid,pou=inspected.objects.find(o=>o.name==='PLC_PRG'&&o.implementation!==undefined);

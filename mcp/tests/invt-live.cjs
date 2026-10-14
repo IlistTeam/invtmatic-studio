@@ -25,7 +25,7 @@ async function call(name,args={},expect=true){
     await client.connect(transport);
     report.server_pid=transport.pid;
     report.tools=(await client.listTools()).tools.map(t=>t.name);
-    assert.equal(report.tools.length,39);
+    assert.equal(report.tools.length,44);
     const started=await call('invt_session_start');
     report.studio_pid=started.pid;
     assert.equal(started.state,'ready');

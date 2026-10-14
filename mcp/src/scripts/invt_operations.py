@@ -9,6 +9,7 @@ import invt_creation
 import invt_tasks
 import invt_runtime
 import invt_debugger
+import invt_trace
 
 _project = None
 _path = None
@@ -130,6 +131,8 @@ def perform(request):
         return {'ok': True, 'project': _path, 'diagnostics': diagnostics()}
     project = owned()
     objects = list(project.get_children(True))
+    if op in invt_trace.OPS:
+        return invt_trace.perform(project, choose_application(objects, request), request)
     if op in invt_debugger.OPS:
         return invt_debugger.perform(project, choose_application(objects, request), request)
     if op in invt_runtime.OPS:

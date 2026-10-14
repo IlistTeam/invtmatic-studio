@@ -6,9 +6,10 @@ import time
 import uuid
 import traceback
 import scriptengine as se
+import invt_frames
 
 OPS = ('prepare_debug', 'debug_locations', 'debug_state', 'set_breakpoint',
-       'list_breakpoints', 'remove_breakpoint', 'debug_continue', 'debug_step')
+       'list_breakpoints', 'remove_breakpoint', 'debug_continue', 'debug_step', 'read_frame_variables')
 CORE_VERSION = '3.5.20.61'
 STEP_COMMANDS = {
     'into': ('breakpoints stepinto', '12289edb-4f13-400c-9e9d-35aa46946c51'),
@@ -122,6 +123,7 @@ def validate_generation(request, application, ctx, native):
 def disconnected():
     global _active
     _active = None  # Retain breakpoint ownership independently for explicit recovery.
+    invt_frames.invalidate()
 
 
 def document(obj):
@@ -224,6 +226,7 @@ def snapshot(application, obj, native, ctx):
             except Exception as e:
                 entry['source_mapping_error'] = unicode(e)
             result['frames'].append(entry)
+    invt_frames.decorate(application, obj, native, ctx, result)
     return result
 
 
@@ -240,6 +243,7 @@ def cleanup(application, obj):
                 raise RuntimeError('Owned breakpoint still set after selective clear')
             _owned.pop(key)
     _active = None
+    invt_frames.invalidate()
 
 
 def prepare_logout(application, obj):
@@ -283,6 +287,7 @@ def stop_halted(application, obj):
 def stop_with_behavior(application, obj, behavior):
     if behavior not in ('finish_cycle', 'abort_cycle'):
         raise HaltRequiresExplicitStop('HALT requires explicit halt_behavior: finish_cycle or abort_cycle; cleanup will not resume implicitly')
+    invt_frames.invalidate()
     native = core(obj, application)
     manager = bp_manager()
     enabled = [p for p in manager.GetBreakpoints(application.guid) if p.IsEnabled]
@@ -319,6 +324,7 @@ def perform(project, application, request):
             raise RuntimeError('Owned simulation connection required')
         native, ctx = core(obj, application), context(application)
         if op == 'prepare_debug':
+            invt_frames.subscribe()
             if _download is None:
                 raise RuntimeError(_unavailable)
             if _download['target_id'] != info['target_id'] or _download['project'] != project.path:
@@ -337,7 +343,9 @@ def perform(project, application, request):
                     'code_id': ids[0], 'data_id': ids[1], 'component_version': CORE_VERSION}
         validate_generation(request, application, ctx, native)
         result = {'ok': True, 'target': info, 'debug_id': _active['debug_id']}
-        if op == 'debug_locations':
+        if op == 'read_frame_variables':
+            result.update(invt_frames.read(application, obj, native, ctx, request))
+        elif op == 'debug_locations':
             result['locations'] = [v[0] for v in locations(application, ctx, request['object_guid'])]
         elif op == 'list_breakpoints':
             result['breakpoints'] = [point_info(p) for p in bp_manager().GetBreakpoints(application.guid)]
@@ -392,6 +400,7 @@ def perform(project, application, request):
                 if status not in ('stop', 'halt_on_bp'):
                     raise ValueError('Continue requires STOP/HALT')
                 dispatched[0] = True
+                invt_frames.invalidate()
                 native.Start()
             else:
                 from System import Array, String
@@ -405,6 +414,7 @@ def perform(project, application, request):
                 if not implementation.Enabled:
                     raise ValueError('Requested step is not enabled in this context')
                 dispatched[0] = True
+                invt_frames.invalidate()
                 command.execute(Array[String]([]))
             se.system.delay(250)
             for attempt in range(35):

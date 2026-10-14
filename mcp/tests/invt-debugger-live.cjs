@@ -13,7 +13,7 @@ async function fixture(action,extra={}){const ipc=new IpcClient({...DEFAULT_IPC_
 async function values(){const r=await call('invt_read_variables',{...request,variables:['PLC_PRG.nCycle','PLC_PRG.nAfter','PLC_PRG.fbProbe.nInside','PRG_Aux.nHeartbeat','PLC_PRG.nRequest','PRG_Aux.nAck']});return r.values.map(v=>Number(v.value.replace(/^[A-Za-z_][A-Za-z0-9_]*#/,'')));}
 async function waitHalt(debug){const until=Date.now()+5000;do{const r=await call('invt_get_debug_state',debug);if(r.state.exception_active)throw Error('Exception while waiting for breakpoint');if(r.state.application_state==='halt_on_bp')return r.state;await new Promise(resolve=>setTimeout(resolve,100));}while(Date.now()<until);throw Error('No breakpoint halt before deadline');}
 (async()=>{try{
- await client.connect(transport);report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,39);
+ await client.connect(transport);report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,44);
  const start=await call('invt_session_start');managed=true;directory=start.directory;fs.copyFileSync(path.join(__dirname,'probes/invt_debugger_fixture.py'),path.join(directory,'invt_debugger_fixture.py'));
  await call('invt_open_copy',{project:'analysis/side-scriptengine-check/API_Check_v6.project'});
  const inspected=await call('invt_inspect');const app=inspected.objects.find(o=>o.application).guid;pou=inspected.objects.find(o=>o.name==='PLC_PRG'&&o.implementation!==undefined);

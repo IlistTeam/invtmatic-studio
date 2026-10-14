@@ -6,6 +6,7 @@ import uuid
 import traceback
 import scriptengine as se
 import invt_debugger
+import invt_trace
 from invt_executor import with_executor
 
 OPS = ('debug_capabilities', 'runtime_target', 'simulation_mode', 'connect_runtime',
@@ -74,7 +75,7 @@ def checked(project, application, request):
 
 
 def assert_offline():
-    if _attached or _forces or _uncertain or invt_debugger._owned:
+    if _attached or _forces or _uncertain or invt_debugger._owned or invt_trace.has_packets():
         raise RuntimeError('Disconnect the simulation runtime before editing or rebuilding the project')
 
 
@@ -128,7 +129,7 @@ def unforce_owned(obj, expression):
 def detach(obj, application=None):
     global _attached, _uncertain
     if not obj.is_logged_in:
-        if _forces or invt_debugger._owned:
+        if _forces or invt_debugger._owned or invt_trace.has_packets():
             raise RuntimeError('Connection lost with owned forces/breakpoints; cleanup unconfirmed, recover explicitly')
         _attached = False
         _uncertain = False
@@ -136,6 +137,9 @@ def detach(obj, application=None):
     cleanup_trace = [{'phase': 'before_stop', 'state': state(obj)}]
     if _attached and unicode(obj.application_state).lower() == 'halt_on_bp':
         raise invt_debugger.HaltRequiresExplicitStop('Explicit stop_application halt_behavior required before disconnect/close/shutdown from HALT')
+    if application is not None:
+        import invt_operations
+        invt_trace.cleanup(invt_operations.owned(),application,obj)
     native_logout = invt_debugger.prepare_logout(application, obj) if _attached else None
     cleanup_trace.append({'phase': 'before_stop_after_deactivate', 'state': state(obj)})
     # HALT was refused above: disconnect must never complete a paused cycle.
@@ -165,7 +169,7 @@ def detach(obj, application=None):
 
 
 def cleanup(project, application, abort_halt=False):
-    if not (_attached or _forces or _uncertain or invt_debugger._owned):
+    if not (_attached or _forces or _uncertain or invt_debugger._owned or invt_trace.has_packets()):
         return
     info, device = target(project, application)
     if info['mode'] != 'simulation':
@@ -188,8 +192,10 @@ def perform(project, application, request):
                 'simulation_getter_present': hasattr(device, 'get_simulation_mode'),
                 'physical_runtime_allowed': False,
                 'breakpoints_step_exposed': True, 'debugger_component_version': invt_debugger.CORE_VERSION,
-                'debugger_requires_owned_full_download': True, 'frame_locals_supported': False,
-                'trace_exposed': False,
+                'debugger_requires_owned_full_download': True, 'frame_locals_supported': True,
+                'frame_locals_repeated_pou_supported': False,
+                'trace_exposed': True, 'trace_buffer_entries': 100,
+                'trace_configuration_delete_requires_disconnect': True,
                 'matrix': 'docs/invt-debug-capabilities.md'}
     if op == 'simulation_mode':
         assert_offline()

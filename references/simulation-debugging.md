@@ -114,8 +114,9 @@ MCP v0.5 adds version-gated breakpoints, implementation row/column mapping,
 step into/over/out and stack observation; follow
 [breakpoint-debugging.md](breakpoint-debugging.md), not ordinary ScriptOnline
 start/stop wrappers. HALT is task-specific; other tasks and software feedback may
-continue. Transient frame locals and trace capture are not implemented. A separate
-trace plugin exists but capture has not been tested. Enum names/system.trace echo
-alone do not prove functionality. Do not install a runtime/DAP substitute automatically.
+continue. MCP v0.6 adds frame-local reads and task trace capture/export; read
+[advanced-debugging.md](advanced-debugging.md) for tested limits, ownership and
+loss/recovery. Enum names/system.trace echo alone do not prove functionality.
+Do not install a runtime/DAP substitute automatically.
 Evidence and remaining work live in the MCP docs and local analysis reports;
 verify a report passed before claiming acceptance.

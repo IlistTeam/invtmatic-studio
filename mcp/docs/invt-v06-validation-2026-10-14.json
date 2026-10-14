@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-14",
+  "server": {
+    "name": "invtmatic-persistent",
+    "version": "0.6.0"
+  },
+  "registered_tools": 44,
+  "scope": "Owned TM750 copies, positively verified Studio simulation; no physical PLC operations",
+  "source_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "host_checks": {
+    "session": 9,
+    "runtime": 7,
+    "debugger": 14,
+    "advanced": 14,
+    "total": 44
+  },
+  "advanced": {
+    "passed": true,
+    "mcp_calls": 58,
+    "fixed_fixtures": 7,
+    "tool_names": [
+      "invt_read_frame_variables",
+      "invt_create_trace",
+      "invt_capture_trace",
+      "invt_list_traces",
+      "invt_delete_trace"
+    ],
+    "frame_values": {
+      "inner_input": 107,
+      "inner_local": 1107,
+      "outer_input": 7,
+      "outer_local": 107
+    },
+    "checks": [
+      "current unique frame watches Good before Value and Release",
+      "fresh caller after return",
+      "unknown variable/handle refusal",
+      "stale handles after step/resume and direct native continue/re-hit",
+      "foreign trace remains online/running",
+      "unexpected logout retains packet ownership",
+      "explicit Keep recovery and selective cleanup",
+      "offline configuration removal without implicit logout",
+      "repeated bounded captures",
+      "stale debug ID and excessive capture refusal"
+    ],
+    "captures": [
+      {
+        "samples_per_signal": [
+          24,
+          24
+        ],
+        "timestamp_unit": "ms",
+        "overflow": false,
+        "packet_cleanup_confirmed": true
+      },
+      {
+        "samples_per_signal": [
+          24,
+          24
+        ],
+        "timestamp_unit": "ms",
+        "overflow": false,
+        "packet_cleanup_confirmed": true
+      }
+    ],
+    "graceful_shutdown": true
+  },
+  "recursive_method": {
+    "passed": true,
+    "mcp_calls_and_fixtures": 17,
+    "repeated_frames": 3,
+    "policy": "No frame_id; explicit ambiguous_repeated_pou refusal; no selected recursive values claimed"
+  },
+  "regression": {
+    "debugger_calls_and_fixtures": 102,
+    "runtime_calls": 116,
+    "both_passed": true,
+    "deliberate_interlock_regression_detected": true
+  },
+  "trace_lifecycle": {
+    "owner_crash": {
+      "studio_exited": true,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "exit_ms": 263,
+      "shutdown_ack_present": false,
+      "owned_cleanup_confirmed": false
+    },
+    "stdin_eof": {
+      "studio_exited": true,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "exit_ms": 15679,
+      "shutdown_ack_present": true,
+      "owned_cleanup_confirmed": true
+    }
+  },
+  "limits": [
+    "Repeated/recursive POU frame selection unsupported and explicitly refused",
+    "Unavailable/optimized-away values return errors; optimization variants not exhaustively tested",
+    "100-entry trace profile, cyclic tasks, 1..8 variables, bounded duration, no triggers or boot auto-start",
+    "No public mutation of frame locals or UI frame selection",
+    "Simulation timing/IO/fieldbus/motion is not physical validation",
+    "Chat registry remains cached at 31; new stdio registry 44 verified"
+  ],
+  "test_sha256": {
+    "invt-advanced-debugger-research.cjs": "690750d6e1e87e39d294f1bbd006e5f92545eb42de5fea461f12556b047571e1",
+    "invt-advanced-guards.py": "b916e0aae26fa34e737b577e8caafd2785f83a5f5e31e91f5cd01875911ae62b",
+    "invt-advanced-live.cjs": "2919ee0f099fa4695c93d0961e79f170cf97ad4779fc74cc47fe05141bff0c88",
+    "invt-debugger-lifecycle.cjs": "35701f3bd72d34415431fa9e75be2bd1f6bedba66d7dbad3fb90e0503025ac21",
+    "invt-debugger-live.cjs": "f7641950adf6d92a0fda73354ee7e1c5f3e40bf0488e0de9f3efaef2a96d966a",
+    "invt-recursive-frames-live.cjs": "251cacf7a853a276905c116a8cae85c55a1794c4768ccbc3bcda28999c59aee1",
+    "invt-runtime-live.cjs": "1bfede7aa1d7150b5c25a3c7cf83519df438faa72257e20fcb41579f664a5992"
+  },
+  "halt_lifecycle": {
+    "owner_crash": {
+      "studio_exited": true,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "owned_cleanup_confirmed": false
+    },
+    "stdin_eof": {
+      "studio_exited": true,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "owned_cleanup_confirmed": true
+    }
+  },
+  "implementation_commit": "b329d105b69cd2c93cf164d7885e16880db864d0"
+}

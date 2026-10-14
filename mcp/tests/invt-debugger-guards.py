@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import sys,types,unittest
 root=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(root/'src/scripts'))
 sys.modules['scriptengine']=types.SimpleNamespace()
 spec=importlib.util.spec_from_file_location('debugger',root/'src/scripts/invt_debugger.py')
 d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)

@@ -1,6 +1,6 @@
 ---
 name: invtmatic-studio
-description: "Develop, review and test IEC 61131-3 ST applications for INVT TM750 in INVTmatic Studio through persistent MCP. Inspect/edit/build project copies, create objects/tasks and debug positively verified simulation with variables, separate write/force and version-gated breakpoints/stepping. Physical PLC runtime control is outside the current integration."
+description: "Develop, review and test IEC 61131-3 ST applications for INVT TM750 in INVTmatic Studio through persistent MCP. Inspect/edit/build project copies, create objects/tasks and debug positively verified simulation with variables, separate write/force and version-gated breakpoints/stepping, current-frame locals and bounded runtime trace. Physical PLC runtime control is outside the current integration."
 ---
 
 # INVTmatic Studio
@@ -29,6 +29,9 @@ or library failures. The preserved `invtmatic-offline` adapter is the fallback.
 - Before breakpoints, stepping or stack inspection, read
   [breakpoint-debugging.md](references/breakpoint-debugging.md). HALT pauses the
   selected task; other tasks may continue. Obtain a current debug_id after download.
+- Before frame-local reads or runtime trace, read
+  [advanced-debugging.md](references/advanced-debugging.md). Fresh frame IDs and
+  owned trace packet cleanup are required; recursive frame selection is refused.
 - For session lifecycle, tools, recovery or registration, read
   [persistent.md](references/persistent.md).
 - When the persistent connection is unavailable, use

@@ -9,7 +9,7 @@ const options = new Command().requiredOption('--workspace <path>')
   .option('--exe <path>').option('--profile <name>')
   .option('--timeout-ms <number>', 'Command deadline', '60000').parse().opts();
 const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs));
-const server = new McpServer({name:'invtmatic-persistent', version:'0.5.0'});
+const server = new McpServer({name:'invtmatic-persistent', version:'0.6.0'});
 // SDK's complex overload inference is also avoided by the upstream server.
 const api = server as any;
 const guid = z.string().uuid();
@@ -115,8 +115,22 @@ api.tool('invt_list_breakpoints','Read application breakpoints and distinguish s
   debugging,(args:any)=>reply(()=>session.call({operation:'list_breakpoints',...args})));
 api.tool('invt_remove_breakpoint','Remove only a breakpoint_id created by this MCP session. No clear-all or foreign removal.',
   {...debugging,breakpoint_id:guid},(args:any)=>reply(()=>session.call({operation:'remove_breakpoint',...args})));
-api.tool('invt_get_debug_state','Read fresh HALT/RUN/STOP state, exact source position and stack frames for this source/code generation. Frame locals unsupported.',
+api.tool('invt_get_debug_state','Read fresh HALT/RUN/STOP, source and stack. Mapped unique frames include expiring frame_id values for read-only locals.',
   debugging,(args:any)=>reply(()=>session.call({operation:'debug_state',...args})));
+api.tool('invt_read_frame_variables','Read named values in a current HALT frame; frame_id expires on step/resume/source/session change. Reject repeated POU frames; release only own watches.',
+  {...debugging,frame_id:guid,variables:z.array(variable).min(1).max(8)},
+  (args:any)=>reply(()=>session.call({operation:'read_frame_variables',...args})));
+api.tool('invt_create_trace','Create an owned trace configuration offline in verified simulation. No runtime download/start, no auto_start. Choose cyclic task and distinct application variable paths.',
+  {...runtime,name:z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/).optional(),task_guid:guid,
+   variables:z.array(variable).min(1).max(8),every_n_cycles:z.number().int().min(1).max(1000).optional()},
+  (args:any)=>reply(()=>session.call({operation:'create_trace',...args})));
+api.tool('invt_capture_trace','Bounded runtime trace in explicit simulation RUN. Current debug_id required. Export samples/CSV, report overflow, delete only own runtime packet; no application auto-start/resume.',
+  {...debugging,trace_id:guid,duration_ms:z.number().int().min(100).max(10000)},
+  (args:any)=>reply(()=>session.call({operation:'capture_trace',...args})));
+api.tool('invt_list_traces','List only trace configurations/packet ownership created by this session in the selected simulation application.',
+  runtime,(args:any)=>reply(()=>session.call({operation:'list_traces',...args})));
+api.tool('invt_delete_trace','Delete only a session-owned trace configuration after selective packet cleanup; refuse foreign packet replacement/adoption.',
+  {...runtime,trace_id:guid},(args:any)=>reply(()=>session.call({operation:'delete_trace',...args})));
 api.tool('invt_debug_continue','Explicitly continue from STOP/HALT using the verified Core API; read back RUN/HALT/STOP. Never implicitly resume during cleanup.',
   debugging,(args:any)=>reply(()=>session.call({operation:'debug_continue',...args})));
 api.tool('invt_debug_step','Execute one verified step into/over/out from HALT with fixed command GUID and enabled-state checks; no arbitrary command.',

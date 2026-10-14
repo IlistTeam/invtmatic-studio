@@ -1,5 +1,10 @@
 # Phase 6: alternative debugger APIs in INVTmatic
 
+Current status: public MCP v0.6 now delivers frame locals and four trace tools.
+The research-only statements below describe the earlier v0.5 state; see
+[v0.6 acceptance](invt-v06-validation-2026-10-14.json) for the delivered boundary.
+
+
 ## Latest advanced research
 
 The next native experiment now proves stack-relative values in nested FUNCTION

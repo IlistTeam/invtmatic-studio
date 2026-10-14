@@ -131,6 +131,24 @@ def run(request, stage):
             _editor.save(output)
             result.update(export_path=output, exported=os.path.exists(output),
                           export_size=os.path.getsize(output) if os.path.exists(output) else 0)
+            view=_editor.GetType().GetField('_view',dbg.flags()).GetValue(_editor)
+            result['view_shape']=shape(view)
+            result['view_interfaces']=[shape(t) for t in view.GetType().GetInterfaces()]
+            result['view_fields']=[]
+            for field in view.GetType().GetFields(dbg.flags()):
+                if re.search('packet|trace|manager|online|record',field.Name,re.I):
+                    value=field.GetValue(view)
+                    if value is not None and hasattr(value,'GetType') and not isinstance(value,(basestring,int,bool)):
+                        result['view_fields'].append({'name':field.Name,'shape':shape(value)})
+            mgr=view.GetType().GetField('_tmManager',dbg.flags()).GetValue(view)
+            packet=mgr.GetType().GetProperty('PacketName',dbg.flags()).GetValue(mgr,None)
+            result['packet_name']=unicode(packet)
+            result['online_before_delete']=[unicode(n) for n in _editor.get_online_traces()]
+            mgr.DeletePacket(packet)
+            from System import Array,Object
+            named=[m for m in mgr.GetType().GetMethods(dbg.flags()) if m.Name=='IsPacketOnline' and len(m.GetParameters())==1][0]
+            result['packet_deleted']=not named.Invoke(mgr,Array[Object]([packet]))
+            result['online_after_delete']=[unicode(n) for n in _editor.get_online_traces()]
         except Exception:
             result['error'] = traceback.format_exc()
         finally:

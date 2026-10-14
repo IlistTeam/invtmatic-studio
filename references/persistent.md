@@ -8,8 +8,8 @@ Pinned upstream commit: `9a965c7e16cb49996de8d45596d6e15a27a39450`, MIT, v0.6.3.
 The INVT entrypoint is `dist/invt-server.js`, not upstream `dist/server.js` or
 `dist/bin.js`. It reuses upstream `IpcClient`, `ScriptManager`, and a derived
 `invt_watcher.py`; `invt-session.ts` provides the vendor-specific lifecycle.
-INVT MCP v0.5 adds eight version-gated breakpoint/step tools to the v0.4 simulation
-and v0.3 task/object operations. Read [breakpoint-debugging.md](breakpoint-debugging.md)
+INVT MCP v0.6 adds frame-local reads and four trace operations to the eight
+v0.5 breakpoint/step tools, v0.4 simulation and v0.3 task/object operations. Read [breakpoint-debugging.md](breakpoint-debugging.md)
 before their use. Runtime procedures and arguments are in
 [simulation-debugging.md](simulation-debugging.md). Rebuild/reconnect the server after upgrading its code;
 an existing stdio process does not reload its tool registry automatically.
@@ -73,8 +73,8 @@ Task parameters and call-order rules are in [tasks.md](tasks.md).
 
 Calls are sequential. A competing mutation returns busy instead of queueing an
 edit against a project that might change. ST is data (base64 JSON), not Python.
-The v0.5 server exposes 39 fixed tools: 16 project/lifecycle, 15 simulation and 8
-debugger tools. The current chat may retain the earlier 31-tool registry until reconnect.
+The v0.6 server exposes 44 fixed tools: 16 project/lifecycle, 15 simulation,
+9 debugger/frame tools and 4 trace tools. Read advanced-debugging.md for the latter. The current chat may retain the earlier 31-tool registry until reconnect.
 It exposes no physical PLC control or arbitrary script execution. The local IPC directory is trusted executable material: keep
 it inside the user's workspace and do not insert third-party command files.
 
@@ -110,7 +110,7 @@ Node executable: resolve the actual `node.exe` on this computer, for example
 `(Get-Command node -CommandType Application).Source` in PowerShell.
 
 Arguments:
-`<clone>\invtmatic-studio\mcp\dist\invt-server.js --workspace <project-workspace>`
+`<clone>\mcp\dist\invt-server.js --workspace <project-workspace>`
 
 Codex MCP tool deadline: 180 seconds. Internal IPC deadline defaults to 60 seconds
 (`--timeout-ms` up to 180000); startup waits up to 90 seconds for the watcher plus

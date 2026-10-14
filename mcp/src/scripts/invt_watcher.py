@@ -22,7 +22,7 @@ sys.path.insert(0, IPC_BASE_DIR)
 COMMANDS_DIR = os.path.join(IPC_BASE_DIR, "commands")
 RESULTS_DIR = os.path.join(IPC_BASE_DIR, "results")
 POLL_INTERVAL = 50  # milliseconds
-WATCHER_VERSION = "0.5.0"
+WATCHER_VERSION = "0.6.0"
 
 # --- Error capture file (written before anything else can fail) ---
 _ERROR_FILE = os.path.join(IPC_BASE_DIR, "watcher_error.txt")

@@ -22,7 +22,8 @@ and explicitly requests that phase with a specified stand and action scope.
 Lack of physical hardware must not block completion of simulation acceptance.
 Connection-loss, reconnect and force-cleanup tests are simulation-only.
 Phase 6 now includes the delivered v0.5 basic breakpoint/stepping bridge below.
-Transient frame locals and trace remain separate unfinished work.
+Public v0.6 now delivers current-frame locals and bounded trace; see the final
+simulation acceptance below. Repeated/recursive frame selection is explicitly refused.
 
 ## Execution order and acceptance
 
@@ -73,7 +74,7 @@ Progress is updated after evidence, not after code is merely written.
 | 4: ST scenarios | Complete | Actual MCP suite passed: absent permission, normal loading, sensor TON timeout, fault/reset, deliberately missing interlock detected, correct implementation restored and assertion rerun; same Studio PID and source unchanged |
 | 7: skill/Git | Complete | Source/installed skill synchronized and validated; capability matrix and sanitized validation summary maintained; related changes committed in invt-simulation-debugging |
 | 5: physical TM750 | Deferred: PLC unavailable | Do not execute hardware-dependent work until the PLC is available and the user requests this phase; no physical runtime operations performed. Not required for simulation acceptance |
-| 6: full debugger | Basic v0.5 debugger delivered; advanced work pending | 39-tool stdio server passed 102 calls/probes: eight added tools, exact ST rows/columns, versioned handles, steps/stack, repeated hits, loss/recovery, foreign definitions and graceful exit. Explicit HALT stop behavior required; transient frame locals, selected frames and trace remain pending |
+| 6: simulation debugger | v0.6 native and portable acceptance passed; publication CI pending | 44 fixed tools; breakpoints/steps/source-mapped stack, current-frame locals, bounded trace, selective cleanup and loss/recovery verified. Repeated recursive frames refused; hardware debugging deferred |
 
 Detailed local evidence: `analysis/runtime-api-probe.json` and
 `analysis/persistent-runtime-result.json` (latest live attempt; do not treat a
@@ -164,24 +165,25 @@ is documented below; this direct-chat acceptance remains a historical v0.4 resul
   source fixture and saved copy remain. EOF acknowledges cleanup. Owner crash
   exits without acknowledgement: graceful cleanup/post-crash values are not proven.
   The 30-second guardian timeout branch itself was not exercised by these exits.
-- [ ] Public transient-frame handles/selected-frame API, recursion and broader task cases.
+- [x] Public current-frame handles and nested calls; repeated recursive METHOD frames
+  explicitly refuse ambiguous selection. UI selected-frame mutation remains out of scope.
 - [x] Native feasibility: read stack-relative input/local values in nested functions,
   same input name with different caller/callee values, and remaining caller after return.
 - [x] Native trace creation/configuration, simulation recording and CSV export with
   cycle/value assertions. Await actual START/STOP rather than immediate cached flags.
-- [ ] Public frame-local API: bind frame handles to a halt epoch and validate source,
+- [x] Public frame-local API: bind frame handles to a halt epoch and validate source,
   code/session identity; reject stale handles after step/resume, unknown/optimized-out
   variables and ambiguous repeated POU/recursive frames; release only owned watches.
-- [ ] Public trace API: own recording/configuration and packet, code/target identity,
+- [x] Public trace API: own recording/configuration and packet, code/target identity,
   bounded duration/buffer, state polling, typed/timestamped export, selective cleanup,
   connection-loss behavior and foreign-recording preservation.
-- [ ] All 39 tools directly in this chat: repeat still sees 31, while fresh stdio
-  exposes the same v0.5 server's 39. Do not label independent tests as chat acceptance.
+- [ ] Client registry refresh: this chat still sees 31, while fresh stdio v0.6
+  exposes 44. Do not label independent tests as direct chat acceptance.
 
 Native failed acceptance reports are not passes. Physical PLC work remains deferred.
 Evidence: analysis/persistent-debugger-result.json and
 docs/invt-debugger-validation-2026-10-14.json. This chat still needs reconnect to
-replace the cached 31-tool registry with the verified 39-tool server.
+replace the cached 31-tool registry with the verified 44-tool server.
 
 ## v0.5 publication
 
@@ -200,3 +202,42 @@ Both Windows CI runs passed on publication commit e7dda84:
 [PR checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546901201)
 and [branch checks](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38546894532).
 They build the standalone package and execute all 30 host checks.
+
+## Advanced research acceptance
+
+The fixed nested-function/trace experiment passed 23 actual MCP calls and five
+private probes. Data and current/remaining frame values are asserted; source is
+unchanged and Studio exits gracefully. No public tool count or runtime behavior
+was changed. The updated skill and probes are published on commit 08b5818 in the
+same standalone PR. Both Windows host checks passed:
+[PR](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38549910989) and
+[branch](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38549905333).
+See [advanced research](invt-advanced-debugger-research.md) and its
+[sanitized acceptance](invt-advanced-debugger-validation-2026-10-14.json).
+
+## Final simulation scope, MCP v0.6
+
+- [x] Five new fixed tools accepted through real stdio MCP: frame-local reads and
+  trace create/capture/list/delete. Extended acceptance: 58 tool calls and 7 fixtures.
+- [x] Stale frames after rapid native continue/re-hit, step, return and reconnect;
+  current nested caller/callee values, bad variables/IDs and explicit recursive refusal.
+- [x] Trace bounds, repeated captures, selective packet cleanup, foreign recording
+  preservation, unexpected logout with retained ledger and explicit Keep recovery.
+- [x] Recursive METHOD fixture: repeated compiled POU frames receive no handles.
+- [x] Legacy regression: 102 debugger calls/probes and 116 runtime calls, including
+  intentional interlock failure detection and restoration. All 44 host checks pass.
+- [x] Owner crash and stdin EOF during confirmed trace recording: owned IDE exits,
+  input fixture and saved copy remain. Crash does not establish graceful cleanup.
+- [x] Source/installed/portable skill validated; backup and config hashes unchanged.
+- [x] Standalone package: 58 MCP calls + 7 fixtures, 44-tool registry, graceful exit,
+  44 host checks and npm audit zero. 15 of 16 runtime files match development after
+  trailing-blank normalization; ipc.js intentionally uses crypto.randomUUID.
+- [ ] GitHub publication and final CI.
+
+Phase 6's supported simulation scope is implemented and verified. Known API limits
+are explicit refusals, not untested promises. Phase 5 remains deferred. Native
+testing does not validate physical I/O, Modbus peers or EtherCAT servo execution.
+See [v0.6 acceptance](invt-v06-validation-2026-10-14.json). Historical v0.5
+reports retain their original counts and research-only boundary.
+
+Portable acceptance: [invt-package-v06-validation-2026-10-14.json](invt-package-v06-validation-2026-10-14.json). Native owner crash/EOF from HALT also passed on the current build.

@@ -62,7 +62,7 @@ export class InvtSession {
       this.directory = path.join(sessionRoot, randomUUID());
       fs.mkdirSync(this.directory);
       const manager = new ScriptManager();
-      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py', 'invt_debugger.py']) {
+      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py', 'invt_debugger.py', 'invt_frames.py', 'invt_trace.py']) {
         fs.copyFileSync(path.join(__dirname,'scripts',name), path.join(this.directory,name));
       }
       const watcher = path.join(this.directory, 'watcher.py');

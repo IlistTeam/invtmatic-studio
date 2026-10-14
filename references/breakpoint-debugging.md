@@ -1,4 +1,4 @@
-# Simulation breakpoints and stepping (MCP v0.5)
+# Simulation breakpoints and stepping (MCP v0.6)
 
 Read [simulation-debugging.md](simulation-debugging.md) first. These eight fixed
 tools require an owned simulation connection, an explicit full download by this
@@ -6,7 +6,7 @@ session, and the verified OnlineManager 3.5.20.61 / Breakpoints.plugin 3.5.20.60
 Studio's VersionKey 3.5.20.60 alone does not identify every component version.
 They do not expose arbitrary commands, Python execution or physical PLC debugging.
 
-The new server has 39 tools. An older running MCP/chat can still show 31: rebuild
+The current server has 44 tools. An older running MCP/chat can still show 31: rebuild
 and reconnect before using the new names. Do not invent unavailable tools.
 
 ## Prepare and choose a source location
@@ -46,8 +46,9 @@ All tools below take application_guid, target_id and debug_id:
 | invt_debug_step | kind: into, over or out; HALT and enabled fixed command required |
 
 Use `invt_read_variables` for qualified application/FB-instance paths and typed
-values. Transient frame-local variables and changing the selected frame are not
-implemented. Do not claim a persistent FB member read is a general frame-local read.
+values. For transient locals use the current frame_id with invt_read_frame_variables
+as described in advanced-debugging.md. This does not change Studio's selected UI
+frame. Repeated/recursive POU frames are explicitly refused.
 Step source/stack changes and values should agree with the intended statement;
 reads remain sequential and are not an atomic application snapshot.
 
@@ -101,8 +102,8 @@ graceful process exit separately; forced termination does not prove graceful exi
 On actual MCP owner loss/EOF the recovery policy aborts the halted cycle, attempts
 owned cleanup and can forcibly terminate its own IDE; it never finishes code implicitly.
 
-Native research has now read stack-relative values in two nested functions and
-captured runtime trace to CSV in simulation. These are developer proofs, not new
-public MCP tools. Stable selected-frame handles, recursive/optimized locals,
-trace packet ownership/cleanup and connection-loss cases remain pending. Read
-[advanced-debugging.md](advanced-debugging.md) for the exact current boundary.
+MCP v0.6 exposes current-frame local reads and bounded runtime trace. Nested
+function values, fresh caller values after return, stale-frame refusal, owned
+packet cleanup, foreign recording preservation and loss/recovery are verified.
+Repeated/recursive POU frames explicitly refuse local reads; unavailable locals
+return errors. Read [advanced-debugging.md](advanced-debugging.md) before use.

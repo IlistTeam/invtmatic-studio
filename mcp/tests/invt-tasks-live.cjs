@@ -27,7 +27,7 @@ async function tasks(application_guid){return (await call('invt_inspect_tasks',{
 function byGuid(items,guid){const result=items.find(t=>t.guid===guid);assert.ok(result);return result;}
 (async()=>{
  try{
-  await client.connect(transport);report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,39);
+  await client.connect(transport);report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,44);
   const started=await call('invt_session_start');managed=true;report.studio_pid=started.pid;
   await call('invt_open_copy',{project:source,expected_sha256:report.source_sha256});
   const inspected=await call('invt_inspect');const app=inspected.objects.find(o=>o.application);assert.ok(app);
