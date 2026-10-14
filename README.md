@@ -150,7 +150,8 @@ STOP из HALT требует явного `halt_behavior`: `finish_cycle` ра�
 [исследование](mcp/docs/invt-debugger-research.md),
 [приёмка](mcp/docs/invt-debugger-validation-2026-10-14.json),
 [план](mcp/docs/invt-debugging-plan.md).
-102 вызова/пробы новой native-приёмки прошли. Локальные переменные выбранных
+Native-приёмка переносимого пакета прошла: 102 вызова/пробы,
+39 инструментов и штатное закрытие. [Результат](mcp/docs/invt-package-debugger-validation-2026-10-14.json). Локальные переменные выбранных
 кадров и захват trace ещё не реализованы; весь этап 6 не считается завершённым.
 
 Native-приёмка отладки на копии fixture:

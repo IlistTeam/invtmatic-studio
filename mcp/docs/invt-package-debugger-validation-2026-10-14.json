@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-14",
+  "version": "0.5.0",
+  "scope": "Portable INVT-only MCP; standalone repository retains runtime-equivalent compiled files and fixture",
+  "passed": true,
+  "tool_count": 39,
+  "calls_and_probes": 102,
+  "mcp_calls": 93,
+  "source_fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "shutdown": {
+    "ok": true,
+    "graceful": true,
+    "forced_termination": false,
+    "runtime_cleanup_confirmed": true,
+    "cleanup_error": null
+  },
+  "runtime_files_compared": [
+    "invt-server.js",
+    "invt-session.js",
+    "ipc.js",
+    "logger.js",
+    "script-manager.js",
+    "types.js",
+    "scripts/invt_creation.py",
+    "scripts/invt_debugger.py",
+    "scripts/invt_executor.py",
+    "scripts/invt_operations.py",
+    "scripts/invt_project.py",
+    "scripts/invt_runtime.py",
+    "scripts/invt_tasks.py",
+    "scripts/invt_watcher.py"
+  ],
+  "python_eof_whitespace_only_changes": [
+    "scripts/invt_project.py"
+  ],
+  "host_tests": 30,
+  "dependency_audit_vulnerabilities": 0,
+  "physical_actions": 0,
+  "limits": [
+    "Current chat needs MCP reconnect to replace cached 31-tool registry",
+    "Transient frame locals and trace capture remain unsupported",
+    "Owner-crash graceful cleanup not confirmed without acknowledgement"
+  ]
+}
