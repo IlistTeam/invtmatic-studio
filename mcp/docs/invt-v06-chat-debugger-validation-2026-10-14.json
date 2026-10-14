@@ -1,0 +1,148 @@
+{
+  "date": "2026-10-14",
+  "scope": "Direct registered MCP calls in this chat, no independent stdio or private probes",
+  "passed": true,
+  "registered_tools": 44,
+  "recorded_mcp_calls": 85,
+  "expected_refusals": 19,
+  "tested_new_tools": [
+    "invt_prepare_debug",
+    "invt_get_debug_locations",
+    "invt_set_breakpoint",
+    "invt_list_breakpoints",
+    "invt_remove_breakpoint",
+    "invt_get_debug_state",
+    "invt_debug_continue",
+    "invt_debug_step",
+    "invt_read_frame_variables",
+    "invt_create_trace",
+    "invt_capture_trace",
+    "invt_list_traces",
+    "invt_delete_trace"
+  ],
+  "physical_runtime_operations": false,
+  "source_fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "source_unchanged": true,
+  "baseline_build": true,
+  "task_period_ms": 50,
+  "checks": {
+    "breakpoint_exact_source_row": true,
+    "step_into": true,
+    "step_over": true,
+    "step_out": true,
+    "stack_after_return": true,
+    "nested_stack_relative_good_values": {
+      "inner_input": 107,
+      "inner_local": 1107,
+      "outer_input": 7,
+      "outer_local": 107,
+      "caller_intermediate_after_assignment": 2214
+    },
+    "stale_frames_after_step_return_continue_and_reconnect_rejected": true,
+    "stale_debug_id_after_reconnect_rejected": true,
+    "missing_variable_and_unknown_frame_rejected": true,
+    "halt_trace_stop_and_disconnect_refusals_preserve_halt": true,
+    "explicit_finish_cycle_stop_without_exception": true,
+    "breakpoint_repeat_counter_increment": 1,
+    "selective_breakpoint_removal": true,
+    "trace_duplicate_paths_name_unknown_id_refused": true,
+    "trace_requires_explicit_run_and_current_debug_id": true,
+    "excessive_buffer_duration_refused": true,
+    "offline_trace_object_removal_confirmed": true
+  },
+  "captures": [
+    {
+      "requested_duration_ms": 1000,
+      "signals": [
+        {
+          "variable": "PLC_PRG.nCycle",
+          "samples": 29,
+          "first": {
+            "timestamp": "17",
+            "value": "1227"
+          },
+          "last": {
+            "timestamp": "1435",
+            "value": "1255"
+          }
+        },
+        {
+          "variable": "PLC_PRG.nResult",
+          "samples": 29,
+          "first": {
+            "timestamp": "17",
+            "value": "2215"
+          },
+          "last": {
+            "timestamp": "1435",
+            "value": "2215"
+          }
+        }
+      ],
+      "timestamp_unit": "ms",
+      "overflow": false,
+      "packet_cleanup_confirmed": true
+    },
+    {
+      "requested_duration_ms": 1000,
+      "signals": [
+        {
+          "variable": "PLC_PRG.nCycle",
+          "samples": 29,
+          "first": {
+            "timestamp": "25",
+            "value": "1355"
+          },
+          "last": {
+            "timestamp": "1454",
+            "value": "1383"
+          }
+        },
+        {
+          "variable": "PLC_PRG.nResult",
+          "samples": 29,
+          "first": {
+            "timestamp": "25",
+            "value": "2215"
+          },
+          "last": {
+            "timestamp": "1454",
+            "value": "2215"
+          }
+        }
+      ],
+      "timestamp_unit": "ms",
+      "overflow": false,
+      "packet_cleanup_confirmed": true
+    }
+  ],
+  "stepping_observations": [
+    {
+      "topic": "Step Out function call continuation",
+      "initial_assertion": "nIntermediate expected 2214 immediately after Step Out",
+      "observed": {
+        "inner_frame_absent": true,
+        "caller_line": 2,
+        "nIntermediate": 0
+      },
+      "interpretation": "Paused in caller call-statement continuation before storing returned value; verify next Step Over",
+      "confirmed_after_step_over": {
+        "caller_line": 3,
+        "nIntermediate": 2214
+      },
+      "classification": "Corrected test expectation; observed native stepping granularity, no MCP defect"
+    }
+  ],
+  "shutdown": {
+    "graceful": true,
+    "forced_termination": false,
+    "runtime_cleanup_confirmed": true,
+    "session_state": "stopped"
+  },
+  "not_repeated_in_this_chat": [
+    "Foreign trace/breakpoint fixtures",
+    "Unexpected logout and owner-crash injection",
+    "Recursive METHOD refusal fixture",
+    "Physical PLC, IO, Modbus or EtherCAT tests"
+  ]
+}

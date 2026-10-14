@@ -35,7 +35,8 @@ and the owning-device getter distinguish IDE simulation from physical target dat
 | system.trace | Script command echo, not PLC trace; deliberately excluded |
 | Reset, source/boot download, remote files, online change | Some generic APIs exist, not included/tested in this scope |
 | Physical TM750 | Not tested, not enabled; actual firmware/hardware/communication/servo models remain unknown |
-| Current chat registry | Cached registry still has 31 tools. Fresh stdio v0.6 has 44; client MCP/registry refresh remains required. Server acceptance does not establish direct chat availability |
+| Current chat registry | Direct discovery now exposes all 44 expected tools, with no missing/extra names. session_status responds; Studio is stopped. This availability check does not repeat the native functional suite |
+| Direct chat functional debugging | Subsequently passed 85 recorded direct MCP calls covering all 13 debugger/frame/trace tools, 19 expected refusals, nested locals, Into/Over/Out, repeated breakpoint, two trace captures, stale generations, offline trace removal and graceful cleanup. See invt-v06-chat-debugger-validation-2026-10-14.json |
 
 Current live acceptance and pending items are tracked in
 [invt-debugging-plan.md](invt-debugging-plan.md). Local detailed results:
@@ -45,8 +46,9 @@ Direct chat evidence after reconnect is in
 `analysis/persistent-chat-runtime-result.json`; its sanitized summary is
 `docs/invt-debug-chat-validation-2026-10-14.json`. The earlier independent-stdio
 JSON registry count of 12 described the chat before reconnect.
-The current repeat discovers 31 tools in this chat and 44 in a fresh stdio
-client. Public v0.6 acceptance supersedes the earlier research-only boundary; see
+The current repeat discovers all 44 tools directly in this chat, matching the
+fresh-stdio accepted set. See invt-v06-chat-registry-validation-2026-10-14.json.
+Public v0.6 acceptance supersedes the earlier research-only boundary; see
 [invt-v06-validation-2026-10-14.json](invt-v06-validation-2026-10-14.json).
 Host guard tests cover mode/token mismatch, target drift, foreign preparations,
 selective force preservation and lost connection retaining cleanup ownership.

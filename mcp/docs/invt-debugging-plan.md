@@ -177,13 +177,14 @@ is documented below; this direct-chat acceptance remains a historical v0.4 resul
 - [x] Public trace API: own recording/configuration and packet, code/target identity,
   bounded duration/buffer, state polling, typed/timestamped export, selective cleanup,
   connection-loss behavior and foreign-recording preservation.
-- [ ] Client registry refresh: this chat still sees 31, while fresh stdio v0.6
-  exposes 44. Do not label independent tests as direct chat acceptance.
+- [x] Client registry refresh: direct discovery in this chat now exposes all 44
+  expected tools, with no missing/extra names; session_status responds successfully.
+  This verifies availability, not a repeated native functional suite.
 
 Native failed acceptance reports are not passes. Physical PLC work remains deferred.
 Evidence: analysis/persistent-debugger-result.json and
-docs/invt-debugger-validation-2026-10-14.json. This chat still needs reconnect to
-replace the cached 31-tool registry with the verified 44-tool server.
+docs/invt-debugger-validation-2026-10-14.json. Direct chat registry acceptance is
+recorded in invt-v06-chat-registry-validation-2026-10-14.json.
 
 ## v0.5 publication
 
@@ -248,7 +249,24 @@ Published [PR 1](https://github.com/IlistTeam/invtmatic-studio/pull/1), implemen
 commit 83f02f34b368a301179ce8c7f4ea557ec4954247. Both Windows CI checks passed:
 [PR](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566780323) and
 [push](https://github.com/IlistTeam/invtmatic-studio/actions/runs/38566774998).
-The available simulation plan is complete. The remaining external actions are
-refreshing the existing Codex MCP/client registry (31 cached versus 44 fresh) and,
-once requested with available hardware, phase 5 physical validation.
+The available simulation plan is complete. The client registry now exposes all
+44 tools directly in this chat. The remaining external action is phase 5 physical
+validation, once requested with available hardware.
 No automatic client restart or physical PLC operation was performed.
+
+## Direct chat functional acceptance, 2026-10-14
+
+- [x] Direct registered MCP calls, not an independent stdio client: 85 recorded
+  calls exercise all 13 debugger/frame/trace tools; 19 expected guard refusals.
+- [x] Exact breakpoint hit and re-hit, Into/Over/Out, different caller/callee
+  stack-relative values, fresh caller after return and stale frame/debug IDs.
+- [x] Two trace captures: 29 samples per signal each, cycle increments by one,
+  function result 2215, no overflow and selective owned-packet cleanup confirmed.
+- [x] Trace configuration removed offline and absent from the final object tree;
+  source fixture unchanged; Studio exits gracefully with runtime cleanup confirmed.
+- [x] Step Out continuation behavior documented: callee return precedes the
+  caller's assignment; next Over produces 2214. Initial early-value expectation
+  was corrected and verified; no MCP implementation defect was found.
+
+Evidence: [direct chat acceptance](invt-v06-chat-debugger-validation-2026-10-14.json).
+Earlier private fault/foreign/recursion fixtures were not repeated in this chat.

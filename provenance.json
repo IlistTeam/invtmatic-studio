@@ -1,5 +1,5 @@
 {
-  "source_commit": "723ec0023b9bf7bb600adf25f502b3f5fb91b227",
+  "source_commit": "fb4c84d8e740b59dd912884402809949433c74a1",
   "upstreams": {
     "codesys_mcp": {
       "repository": "https://github.com/luke-harriman/Codesys-MCP.git",
@@ -16,12 +16,12 @@
   "source_sha256": {
     "analysis/side-scriptengine-check/API_Check_v6.project": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
     "integration/codesys-mcp-invt/LICENSE": "06dcddbb6908a0c6dd4a9e8ec822eea41d5a460a53089fecccc8a68049e99241",
-    "integration/codesys-mcp-invt/docs/invt-debug-capabilities.md": "cacb095254f5ea392b5bb6f229fc8a4feb6b68dea62219fdc7e67cc376a69365",
+    "integration/codesys-mcp-invt/docs/invt-debug-capabilities.md": "01ef82307a31f1edcf096d31a21374b552ce18caa39e18860fe2152962dcd6c6",
     "integration/codesys-mcp-invt/docs/invt-debug-chat-validation-2026-10-14.json": "21d94a70e945f4de6ccdd424380363434c4b6ede038c6df71298503a92102a22",
     "integration/codesys-mcp-invt/docs/invt-debug-validation-2026-10-14.json": "d13221d419c9959dcb1d3ad73347a7e052e3f9be36e9cacba00f4c6c5b5c29be",
     "integration/codesys-mcp-invt/docs/invt-debugger-proof-2026-10-14.json": "a028b62ac7bbeb42946610b7e97a6868d827e7c0f5b611bcc810d9184ec62442",
     "integration/codesys-mcp-invt/docs/invt-debugger-research.md": "fd00868492da2b4a2b33f3e962c89ac6771570bff021e91202ace3c08031c365",
-    "integration/codesys-mcp-invt/docs/invt-debugging-plan.md": "1565126e7f91cd58352a0f837f6e658f4e9659e5d3567103c8af3752d24a532a",
+    "integration/codesys-mcp-invt/docs/invt-debugging-plan.md": "c4abf69d670b3babd7325c6c98d7aa3a7898b648edcfa1fdb6845759ddafb993",
     "integration/codesys-mcp-invt/package-lock.json": "4386099162928121aed8b974a5d76538f671ae41268bdaf88d1df23a74773bda",
     "integration/codesys-mcp-invt/package.json": "a974612af1ef6c09accda1eb4ab521249f1969933ce2f031312f57867e495f1e",
     "integration/codesys-mcp-invt/src/invt-server.ts": "654faa371d05dc1c1c5d0e0d5d51a58a66dff83b6b87bce1031470939a30586b",
@@ -78,7 +78,7 @@
     "integration/codesys-mcp-invt/tests/invt-debugger-live.cjs": "f7641950adf6d92a0fda73354ee7e1c5f3e40bf0488e0de9f3efaef2a96d966a",
     "integration/codesys-mcp-invt/tests/invt-debugger-logout-probe.cjs": "8c37f790268752b2ebf14254b09ab7a74ffa2d06eceef3efa9b7e8f369775257",
     "integration/codesys-mcp-invt/tests/probes/invt_debugger_fixture.py": "dbb9ce4f1468ca1b7460ef23647e929b8fe7d9c32e3fb14d68d0af1dbdb54d84",
-    "integration/invtmatic-studio/references/breakpoint-debugging.md": "44556c09826bbd492c37a7884683915d6090bfc95c1ee9f3e66688fec44a8dec",
+    "integration/invtmatic-studio/references/breakpoint-debugging.md": "887d5ca390d7bcf302d231b439e0d04c2a35d86a91c67cd2f373afc8b18028f0",
     "integration/codesys-mcp-invt/docs/invt-advanced-debugger-research.md": "4f7672148c2ca8c6c6d0d3430c0a905537684859c24b5f81bb952eb56ddfb77e",
     "integration/codesys-mcp-invt/docs/invt-advanced-debugger-validation-2026-10-14.json": "d3e8fe37a0e12441765f4cacb226309d814c4b483b7cef26001cfad928a13887",
     "integration/codesys-mcp-invt/tests/invt-advanced-debugger-research.cjs": "690750d6e1e87e39d294f1bbd006e5f92545eb42de5fea461f12556b047571e1",
@@ -91,7 +91,9 @@
     "integration/codesys-mcp-invt/tests/invt-advanced-live.cjs": "2919ee0f099fa4695c93d0961e79f170cf97ad4779fc74cc47fe05141bff0c88",
     "integration/codesys-mcp-invt/tests/invt-recursive-frames-live.cjs": "251cacf7a853a276905c116a8cae85c55a1794c4768ccbc3bcda28999c59aee1",
     "integration/codesys-mcp-invt/tests/probes/invt_advanced_fixtures.py": "ee5f80210fe551cdc3d2609c5d29fb02cb436c1d65ae7673f52ffa9a1643fd4f",
-    "integration/codesys-mcp-invt/docs/invt-package-v06-validation-2026-10-14.json": "88feb83b298435671e5cba6efc6df192563c485e0b269405456e690785d352a2"
+    "integration/codesys-mcp-invt/docs/invt-package-v06-validation-2026-10-14.json": "88feb83b298435671e5cba6efc6df192563c485e0b269405456e690785d352a2",
+    "integration/codesys-mcp-invt/docs/invt-v06-chat-debugger-validation-2026-10-14.json": "f62c147a40d93abb0690e2fa787b773b14de7777cf975a1c7afb4a103ed3860e",
+    "integration/codesys-mcp-invt/docs/invt-v06-chat-registry-validation-2026-10-14.json": "5dc6647023439cb64fbd35565d9f8d98b44fe6d655afca037e05f052f993d760"
   },
   "publication_changes": [
     "INVT-only source subset; MIT notice retained",
@@ -103,7 +105,8 @@
     "Published setup references use portable clone/interpreter/workspace paths; installed fallback remains unchanged",
     "v0.5: eight guarded simulation debugger tools; explicit HALT stop policy; 39 tools total",
     "Advanced native research: stack-relative function locals and runtime trace proved; no new public tools",
-    "v0.6 frame-local/trace tools and guards; standalone dependency resolutions and user-selected setup instructions preserved"
+    "v0.6 frame-local/trace tools and guards; standalone dependency resolutions and user-selected setup instructions preserved",
+    "Direct chat registry and native acceptance summaries; skill clarifies Step Out caller continuation; runtime code/dependencies unchanged"
   ],
   "exclusions": [
     "vendor DLL/libraries/installers",
