@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-14",
+  "scope": "Published portable INVT-only MCP bundle on the verified native Studio installation",
+  "success": true,
+  "tool_count": 31,
+  "call_count": 26,
+  "source_unchanged": true,
+  "source_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "graceful_shutdown": true,
+  "checks": [
+    "31 tools discovered over stdio",
+    "Owned UI Studio and primary-thread handshake",
+    "Fresh TM750 project copy; baseline clean build",
+    "Invalid object/application rejected",
+    "Intentional ST compiler error detected and repaired",
+    "Unicode ST read-back; native and XML exports",
+    "Ten repeated inspections on the same process",
+    "Save/close/reopen preserved text",
+    "Source input unchanged and owned Studio closed"
+  ],
+  "host_node_tests": 7,
+  "host_python_guard_tests": 7,
+  "dependency_audit_vulnerabilities": 0,
+  "physical_runtime_operations": 0
+}

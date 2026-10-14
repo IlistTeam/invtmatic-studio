@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-14",
+  "scope": "Native fixed-stage breakpoint/stepping prototype on an owned TM750 project copy in positively verified Studio simulation",
+  "passed": true,
+  "events": [
+    {
+      "label": "breakpoint_hit",
+      "state": "halt_on_bp",
+      "current_pou": "PLC_PRG",
+      "values": {
+        "PLC_PRG.nAfter": "UDINT#0",
+        "PLC_PRG.nCycle": "UDINT#0",
+        "PLC_PRG.fbProbe.nInside": "UDINT#0"
+      },
+      "call_stack_count": 3,
+      "source": {
+        "length": 21,
+        "guid": "8b6f3c45-198e-4af9-bf4b-bdc3c33ac8fb",
+        "position_id": 19
+      }
+    },
+    {
+      "label": "breakpoints stepover",
+      "state": "halt_on_bp",
+      "current_pou": "PLC_PRG",
+      "values": {
+        "PLC_PRG.nAfter": "UDINT#0",
+        "PLC_PRG.nCycle": "UDINT#1",
+        "PLC_PRG.fbProbe.nInside": "UDINT#0"
+      },
+      "call_stack_count": 3,
+      "source": {
+        "length": 10,
+        "guid": "8b6f3c45-198e-4af9-bf4b-bdc3c33ac8fb",
+        "position_id": 20
+      }
+    },
+    {
+      "label": "breakpoints stepinto",
+      "state": "halt_on_bp",
+      "current_pou": "FB_DEBUGPROBE",
+      "values": {
+        "PLC_PRG.nAfter": "UDINT#0",
+        "PLC_PRG.nCycle": "UDINT#1",
+        "PLC_PRG.fbProbe.nInside": "UDINT#0"
+      },
+      "call_stack_count": 4,
+      "source": {
+        "length": 23,
+        "guid": "d602b1aa-af48-4466-a8a7-04167b570ee4",
+        "position_id": 2
+      }
+    },
+    {
+      "label": "breakpoints stepover",
+      "state": "halt_on_bp",
+      "current_pou": "FB_DEBUGPROBE",
+      "values": {
+        "PLC_PRG.nAfter": "UDINT#0",
+        "PLC_PRG.nCycle": "UDINT#1",
+        "PLC_PRG.fbProbe.nInside": "UDINT#1"
+      },
+      "call_stack_count": 4,
+      "source": {
+        "length": 24,
+        "guid": "d602b1aa-af48-4466-a8a7-04167b570ee4",
+        "position_id": 3
+      }
+    },
+    {
+      "label": "breakpoints stepout",
+      "state": "halt_on_bp",
+      "current_pou": "PLC_PRG",
+      "values": {
+        "PLC_PRG.nAfter": "UDINT#0",
+        "PLC_PRG.nCycle": "UDINT#1",
+        "PLC_PRG.fbProbe.nInside": "UDINT#11"
+      },
+      "call_stack_count": 3,
+      "source": {
+        "length": 10,
+        "guid": "8b6f3c45-198e-4af9-bf4b-bdc3c33ac8fb",
+        "position_id": 20
+      }
+    }
+  ],
+  "owned_breakpoint_cleared": true,
+  "final_state": "stop",
+  "graceful_shutdown": true,
+  "source_fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "limitations": [
+    "No public debugger MCP tools added",
+    "Generic ST row to compiler position mapping pending",
+    "Repeated continue and foreign breakpoint preservation untested",
+    "Multi-task/watchdog and stack-frame locals untested",
+    "Version-dependent reflection/Core API",
+    "No physical PLC connection"
+  ]
+}

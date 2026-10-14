@@ -1,0 +1,51 @@
+{
+  "name": "invtmatic-studio-mcp",
+  "version": "0.4.0",
+  "description": "INVTmatic Studio project development and positively verified simulation MCP",
+  "main": "dist/invt-server.js",
+  "bin": {
+    "invtmatic-studio-mcp": "dist/invt-server.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:invt",
+    "build:invt": "tsc && node -e \"require('fs').cpSync('src/scripts','dist/scripts',{recursive:true})\"",
+    "test": "npm run test:invt",
+    "test:invt": "node --test tests/invt-session.test.cjs",
+    "test:guards": "python tests/invt-runtime-guards.py",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "codesys",
+    "mcp",
+    "plc",
+    "automation",
+    "persistent",
+    "ui"
+  ],
+  "author": "luke-harriman",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IlistTeam/Skills.git",
+    "directory": "invtmatic-studio/mcp"
+  },
+  "homepage": "https://github.com/luke-harriman/Codesys-MCP#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "commander": "^11.1.0",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.1",
+    "typescript": "^5.5.3"
+  },
+  "private": true
+}

@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-14",
+  "adapter_version": "0.4.0",
+  "baseline_commit": "6076197",
+  "studio": "INVTmatic Studio V3.0.1.4",
+  "core": "3.5.20.60",
+  "script_engine": "4.1.0.0",
+  "fixture": "API_Check_v6.project",
+  "fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "io_standard": "3.5.15.0",
+  "runtime_scope": "verified_simulation_only",
+  "physical_plc_actions_performed": false,
+  "stdio_tools": [
+    "invt_session_start",
+    "invt_session_status",
+    "invt_open_copy",
+    "invt_inspect",
+    "invt_inspect_tasks",
+    "invt_create_task",
+    "invt_configure_task",
+    "invt_bind_program",
+    "invt_build",
+    "invt_patch_st",
+    "invt_export_pou",
+    "invt_create_pou",
+    "invt_create_gvl",
+    "invt_create_dut",
+    "invt_get_debug_capabilities",
+    "invt_get_runtime_target",
+    "invt_set_simulation_mode",
+    "invt_connect_runtime",
+    "invt_disconnect_runtime",
+    "invt_get_runtime_state",
+    "invt_download_application",
+    "invt_start_application",
+    "invt_stop_application",
+    "invt_list_forces",
+    "invt_read_variables",
+    "invt_monitor_variables",
+    "invt_write_variable",
+    "invt_force_variable",
+    "invt_unforce_variable",
+    "invt_close_project",
+    "invt_session_stop"
+  ],
+  "runtime_test": {
+    "passed": true,
+    "tool_calls": 110,
+    "scenarios": [
+      {
+        "name": "permission absent",
+        "passed": true
+      },
+      {
+        "name": "normal loading",
+        "passed": true
+      },
+      {
+        "name": "sensor TON timeout",
+        "passed": true
+      },
+      {
+        "name": "fault and recovery",
+        "passed": true
+      },
+      {
+        "name": "deliberate missing interlock detected",
+        "passed": true,
+        "observed": {
+          "eState": "90"
+        }
+      }
+    ],
+    "graceful_shutdown": true,
+    "source_unchanged": true
+  },
+  "loss_test": {
+    "passed": true,
+    "operations_and_probes": 31,
+    "graceful_shutdown": true,
+    "cases": [
+      "foreign force preserved",
+      "unexpected logout: no stale state/values",
+      "monitor stops on loss",
+      "loss with owned force retains cleanup ledger",
+      "explicit Keep recovery, force found and cleaned",
+      "owned force cleaned before project close"
+    ]
+  },
+  "host_tests": {
+    "session": 7,
+    "runtime_guards": 7,
+    "passed": true
+  },
+  "backup_and_config_unchanged": true,
+  "skill_validated_and_synchronized": true,
+  "current_chat_tool_registry": 12,
+  "requires_mcp_reconnect": true,
+  "limits": [
+    "no physical TM750 validation",
+    "no breakpoint/step/trace API exposed",
+    "exception flag observed, native exception injection untested",
+    "no atomic reads or scan timing guarantee",
+    "crash-time graceful cleanup unconfirmed"
+  ]
+}

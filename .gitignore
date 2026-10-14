@@ -1,0 +1,12 @@
+.invt/
+mcp/node_modules/
+mcp/dist/
+**/__pycache__/
+*.pyc
+*.project~
+*.opt
+*.compileinfo
+analysis/*
+!analysis/side-scriptengine-check/
+analysis/side-scriptengine-check/*
+!analysis/side-scriptengine-check/API_Check_v6.project

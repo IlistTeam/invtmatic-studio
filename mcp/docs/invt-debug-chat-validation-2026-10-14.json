@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-14",
+  "adapter_version": "0.4.0",
+  "context": "direct native tool calls in this chat after MCP reconnect",
+  "passed": true,
+  "registered_tools": 31,
+  "actual_tool_calls": 37,
+  "physical_plc_actions_performed": false,
+  "fixture_sha256": "4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d",
+  "checks": [
+    "baseline ST build",
+    "task inspection",
+    "ST patch and rebuild",
+    "physical RUN rejected before native runtime call",
+    "simulation setter/getter and target token",
+    "full Never download without boot or implicit start",
+    "stopped ordinary write, overwritten on RUN",
+    "array element read",
+    "input/output observation",
+    "force held through monitor, selective unforce",
+    "invalid variable path error",
+    "fresh execution state",
+    "STOP and repeated STOP",
+    "disconnect cleans owned force",
+    "disconnected read has no stale value",
+    "polling stops on disconnected read",
+    "Keep reattach and empty force list",
+    "simulation disabled after disconnect",
+    "same owned Studio PID",
+    "graceful shutdown"
+  ],
+  "all_15_runtime_tools_exercised": true,
+  "requires_mcp_reconnect": false,
+  "local_report": "analysis/persistent-chat-runtime-result.json",
+  "limitations": [
+    "simulation only",
+    "prior independent stdio suite covers unexpected logout/foreign force, not repeated here",
+    "no breakpoint, step or trace tools"
+  ]
+}

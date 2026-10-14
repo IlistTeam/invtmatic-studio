@@ -1,0 +1,118 @@
+/** INVT-only entrypoint. Fixed project and verified-simulation operations. */
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Command } from 'commander';
+import { z } from 'zod';
+import { InvtSession } from './invt-session';
+
+const options = new Command().requiredOption('--workspace <path>')
+  .option('--exe <path>').option('--profile <name>')
+  .option('--timeout-ms <number>', 'Command deadline', '60000').parse().opts();
+const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs));
+const server = new McpServer({name:'invtmatic-persistent', version:'0.4.0'});
+// SDK's complex overload inference is also avoided by the upstream server.
+const api = server as any;
+const guid = z.string().uuid();
+const application = {application_guid:guid.optional()};
+const runtime = {application_guid:guid, target_id:guid};
+const variable = z.string().max(512).regex(/^[A-Za-z_][A-Za-z0-9_]*(\[[0-9]+\])*(\.[A-Za-z_][A-Za-z0-9_]*(\[[0-9]+\])*)*$/).refine(v=>!/\s/.test(v));
+const variables = z.array(variable).min(1).max(32);
+const creation = {name:z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/).max(128).refine(v=>!/\s/.test(v)),
+  declaration:z.string().min(1).max(1000000), ...application};
+const typeName = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$/).max(256).refine(v=>!/\s/.test(v));
+const milliseconds = z.number().int().min(1).max(60000);
+const priority = z.number().int().min(0).max(31);
+const watchdog = z.object({enabled:z.boolean(), time_ms:milliseconds.optional(),
+  sensitivity:z.number().int().min(1).max(1000).optional()}).strict()
+  .refine(v=>!v.enabled || (v.time_ms!==undefined && v.sensitivity!==undefined),
+    'Enabling watchdog requires time_ms and sensitivity');
+const taskSettings = z.object({interval_ms:milliseconds.optional(),priority:priority.optional(),
+  watchdog:watchdog.optional()}).strict().refine(v=>Object.keys(v).length>0,'Supply at least one task setting');
+const reply = async (operation:()=>Promise<any>|any) => {
+  try {
+    const result = await operation();
+    return {content:[{type:'text',text:JSON.stringify(result)}], isError:result.ok===false};
+  } catch(error) {
+    return {content:[{type:'text',text:JSON.stringify({ok:false,error:String(error),session:session.status()})}],isError:true};
+  }
+};
+api.tool('invt_session_start', 'Start one owned UI-initialized Studio and verify primary-thread IPC.', {}, ()=>reply(()=>session.start()));
+api.tool('invt_session_status', 'Read persistent session status without touching Studio.', {}, ()=>reply(()=>session.status()));
+api.tool('invt_open_copy', 'Open a fresh copy of a workspace .project. Source is preserved.', {
+  project:z.string().min(1), expected_sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()
+}, (args:any)=>reply(()=>session.call({operation:'open_copy',...args})));
+api.tool('invt_inspect', 'Read tree, object GUIDs, ST and library resolutions in the open copy.', {}, ()=>reply(()=>session.call({operation:'inspect'})));
+api.tool('invt_inspect_tasks', 'Read task configuration GUIDs, task kinds, intervals, priorities, watchdogs and ordered program calls.', application,
+  (args:any)=>reply(()=>session.call({operation:'inspect_tasks',...args})));
+api.tool('invt_create_task', 'Create a cyclic task in an existing task configuration, verify settings, save and rebuild.', {
+  name:creation.name, interval_ms:milliseconds, priority, watchdog:watchdog.optional(),
+  task_configuration_guid:guid.optional(), ...application
+}, (args:any)=>reply(()=>session.call({operation:'create_task',...args})));
+api.tool('invt_configure_task', 'Update supplied cyclic-task period, priority or watchdog settings; preserve other settings and calls, save and rebuild.', {
+  task_guid:guid, settings:taskSettings, ...application
+}, (args:any)=>reply(()=>session.call({operation:'configure_task',...args})));
+api.tool('invt_bind_program', 'Insert a PROGRAM POU into the ordered calls of a task, verify, save and rebuild. Reject duplicate/cross-task calls unless explicitly allowed.', {
+  task_guid:guid, program_guid:guid, index:z.number().int().min(0).optional(),
+  comment:z.string().max(2048).optional(), allow_multi_task:z.boolean().optional(), ...application
+}, (args:any)=>reply(()=>session.call({operation:'bind_program',...args})));
+api.tool('invt_build', 'Rebuild the open copy with fresh compiler diagnostics and save it.', application,
+  (args:any)=>reply(()=>session.call({operation:'build',...args})));
+api.tool('invt_patch_st', 'Replace supplied ST sections, verify read-back, save and rebuild the same session copy.', {
+  object_guid:guid, declaration:z.string().max(1000000).optional(), implementation:z.string().max(1000000).optional(), ...application
+}, (args:any)=>reply(()=>{
+  if(args.declaration===undefined && args.implementation===undefined)throw new Error('Supply declaration and/or implementation');
+  return session.call({operation:'patch_st',...args});
+}));
+api.tool('invt_export_pou', 'Export a textual object as native export and PLCopen XML.', {object_guid:guid},
+  (args:any)=>reply(()=>session.call({operation:'export_pou',...args})));
+api.tool('invt_create_pou', 'Create ST program/function block/function in the selected application, verify text, save and rebuild. A compiler failure preserves the new object GUID.', {
+  ...creation, pou_type:z.enum(['program','function_block','function']),
+  return_type:typeName.optional(), implementation:z.string().max(1000000).optional()
+}, (args:any)=>reply(()=>session.call({operation:'create_pou',...args})));
+api.tool('invt_create_gvl', 'Create a GVL in the selected application, verify the complete declaration, save and rebuild.', creation,
+  (args:any)=>reply(()=>session.call({operation:'create_gvl',...args})));
+api.tool('invt_create_dut', 'Create a structure/enum/alias/union in the selected application, verify text, save and rebuild.', {
+  ...creation, dut_type:z.enum(['structure','enumeration','alias','union']), base_type:typeName.optional()
+}, (args:any)=>reply(()=>session.call({operation:'create_dut',...args})));
+for (const [name,operation,description] of [
+  ['invt_get_debug_capabilities','debug_capabilities','Inspect installed simulation APIs and limitations. Physical runtime operations are disabled.'],
+  ['invt_get_runtime_target','runtime_target','Read owning device, project/application identity and actual simulation getter; obtain a target token.']
+]) api.tool(name,description,application,(args:any)=>reply(()=>session.call({operation,...args})));
+api.tool('invt_set_simulation_mode','Set the owning device simulation flag while disconnected, save and verify actual getter. Disabling never connects to a PLC.',
+  {...runtime,enabled:z.boolean()},(args:any)=>reply(()=>session.call({operation:'simulation_mode',...args})));
+for (const [name,operation,description] of [
+  ['invt_connect_runtime','connect_runtime','Attach to verified simulation with Keep: no download, update, start or boot creation.'],
+  ['invt_disconnect_runtime','disconnect_runtime','Clean only session-owned forces, stop and logout the owned simulation connection.'],
+  ['invt_get_runtime_state','runtime_state','Read fresh simulation connection/execution/exception state without auto-login.'],
+  ['invt_download_application','download_application','Fresh build and explicit full download to verified simulation using Never; no boot or automatic start. Disconnect first.'],
+  ['invt_start_application','start_application','Explicit RUN in the owned, verified simulation connection; verify state.'],
+  ['invt_stop_application','stop_application','Explicit STOP in the owned, verified simulation connection; verify state.'],
+  ['invt_list_forces','list_forces','List current simulation forces and distinguish those created by this MCP session.']
+]) api.tool(name,description,runtime,(args:any)=>reply(()=>session.call({operation,...args})));
+api.tool('invt_read_variables','Read one or several simulation variable paths with individual timestamps/errors; sequential, not atomic.',
+  {...runtime,variables},(args:any)=>reply(()=>session.call({operation:'read_variables',...args})));
+api.tool('invt_monitor_variables','Bounded host polling of simulation variables; stop on error, no atomicity or scan-timing guarantee.',
+  {...runtime,variables,duration_ms:z.number().int().min(100).max(10000),interval_ms:z.number().int().min(50).max(5000)},
+  (args:any)=>reply(()=>session.call({operation:'monitor_variables',...args})));
+for (const [name,operation,description] of [
+  ['invt_write_variable','write_variable','One-time simulation write via write_prepared_values, without force. Refuses foreign prepared/forced values.'],
+  ['invt_force_variable','force_variable','Force a simulation variable separately from ordinary write; track ownership for selective cleanup.']
+]) api.tool(name,description,{...runtime,variable,value:z.string().min(1).max(4096)},
+  (args:any)=>reply(()=>session.call({operation,...args})));
+api.tool('invt_unforce_variable','Selectively release a force created by this MCP session; never unforce all or foreign forces.',
+  {...runtime,variable},(args:any)=>reply(()=>session.call({operation:'unforce_variable',...args})));
+api.tool('invt_close_project', 'Save and close this session project; keep Studio and IPC running.', {},
+  ()=>reply(()=>session.call({operation:'close_project'})));
+api.tool('invt_session_stop', 'Save the owned project and close only the owned Studio process.', {}, ()=>reply(()=>session.stop()));
+
+let stopping = false;
+async function shutdown() {
+  if(stopping)return;
+  stopping=true;
+  try { await session.stop(); } catch(e) { console.error(String(e)); }
+  process.exit(0);
+}
+process.stdin.once('end',shutdown);
+process.once('SIGINT',shutdown);
+process.once('SIGTERM',shutdown);
+server.connect(new StdioServerTransport()).catch(e=>{console.error(e);process.exitCode=1;void shutdown();});

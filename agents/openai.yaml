@@ -1,0 +1,4 @@
+interface:
+  display_name: "INVTmatic Studio"
+  short_description: "TM750: ST, сборка и отладка в симуляции через MCP"
+  default_prompt: "Используй $invtmatic-studio для разработки и проверки ST в INVTmatic Studio через постоянный MCP на копии проекта с явно проверенной целью симуляции."
