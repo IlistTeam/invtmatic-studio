@@ -2,7 +2,8 @@
 
 Installation: INVTmatic Studio V3.0.1.4, executable version 3.0.1.3, CODESYS
 core 3.5.20.60/SP20 Patch6, ScriptEngine 4.1.0.0/IronPython 2.7.
-Adapter: INVT MCP v0.4.0, 31 fixed tools (16 project/lifecycle, 15 simulation).
+Adapter: INVT MCP v0.5.0, 39 fixed tools (16 project/lifecycle, 15 simulation, 8 debugger).
+Debugger gate uses OnlineManager 3.5.20.61 and Breakpoints.plugin 3.5.20.60.
 Physical runtime actions and discovery remain disabled. Test source is the fixed
 TM750 API_Check_v6.project (SHA256
 4115c61d6b890f8f258f650202886294af4991d086c21e27c45056eacdd2123d).
@@ -25,12 +26,14 @@ and the owning-device getter distinguish IDE simulation from physical target dat
 | Forces | Tested: own ledger, selective unforce, disconnect/project-close cleanup; foreign force survives own cleanup; unexpected logout gives fresh errors and stops monitoring. Lost connection with owned force reports unconfirmed cleanup, retains ledger, explicit Keep reattach discovers force, selective cleanup passes |
 | Monitoring | Tested: bounded sequential host polling, per-read timestamps; not atomic, not trace, no scan timing guarantee |
 | ST scenarios | Full actual MCP suite passed: no permission, normal loading, sensor TON timeout, fault/reset, intentional interlock regression detected and repaired rerun passed; 110 tool calls, 31 registered tools |
-| Breakpoints/line stepping/stack | Absent from ScriptOnline public wrapper, but alternative core/command prototype proved breakpoint hit and step into/over/out across PROGRAM→FB, source GUID/position and stack depth, selective cleanup and Core STOP. Not exposed by production MCP; generic line mapping/task-watchdog validation pending |
+| Breakpoints/line stepping/stack | v0.5 real stdio acceptance passed: exact implementation row/column, BPManager registration+activation, over/into/out across PROGRAM→FB, mapped source/frames, re-hit, stale-source/code/connection handles and owned cleanup. Transient frame locals not implemented |
+| HALT, tasks and STOP | HALT pauses only the debug task; auxiliary task and software feedback continue. 100 ms watchdogs/450 ms pause tested in simulation. STOP from HALT requires explicit finish_cycle (remaining statements execute) or abort_cycle (can cause exception STOP). No default; disconnect/close/shutdown refuse HALT without an explicit choice |
+| Foreign breakpoints and lifecycle | Definitions preserved, foreign collisions/removal refused; explicit cycle finish before STOP, selective owned cleanup, Keep recovery and graceful IDE exit passed. Earlier Core STOP with active points generated exception; deactivation before STOP finishes the cycle and is not hidden cleanup |
 | Runtime trace | Separate scriptengine.trace.create exists in installed trace plugin; presence confirmed, capture/analysis not tested or exposed |
 | system.trace | Script command echo, not PLC trace; deliberately excluded |
 | Reset, source/boot download, remote files, online change | Some generic APIs exist, not included/tested in this scope |
 | Physical TM750 | Not tested, not enabled; actual firmware/hardware/communication/servo models remain unknown |
-| Current chat registry | Reconnected: all 31 tools available. Direct chat test passed 37 calls exercising all 15 runtime tools, same-PID graceful shutdown |
+| Current chat registry | Earlier v0.4 registry still has 31 tools; reconnect required for v0.5's 39. Fresh stdio clients validate all eight added tools. Earlier direct chat 37-call runtime result remains historical |
 
 Current live acceptance and pending items are tracked in
 [invt-debugging-plan.md](invt-debugging-plan.md). Local detailed results:

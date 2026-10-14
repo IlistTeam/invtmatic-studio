@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-14",
+  "scope": "Owned TM750 copy and verified simulation; HALT owner loss only",
+  "passed": true,
+  "physical_actions": 0,
+  "checks": {
+    "owner_crash": {
+      "from_state": "halt_on_bp",
+      "cycle_before": 0,
+      "studio_exited": true,
+      "exit_ms": 259,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "cleanup_acknowledged": false
+    },
+    "stdin_eof": {
+      "from_state": "halt_on_bp",
+      "cycle_before": 0,
+      "studio_exited": true,
+      "exit_ms": 6817,
+      "source_unchanged": true,
+      "copy_saved": true,
+      "cleanup_acknowledged": true
+    }
+  },
+  "limits": [
+    "Post-crash values cannot be read after the IDE exits",
+    "Owner-crash graceful cleanup not confirmed without acknowledgement",
+    "The 30-second guardian timeout branch did not need to fire"
+  ]
+}

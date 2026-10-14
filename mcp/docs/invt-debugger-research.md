@@ -1,11 +1,55 @@
 # Phase 6: alternative debugger APIs in INVTmatic
 
-Research reopened 2026-10-14 at the user's request. Only an owned TM750 copy and
-positively verified built-in simulation are used. Physical hardware is unavailable
-and remains outside scope. The production MCP still has 31 tools; these fixed
-developer probes do not expose arbitrary code or new public debugger controls.
+## v0.5 implementation update
 
-## Progress
+The guarded eight-tool bridge is implemented in src/scripts/invt_debugger.py and
+the stdio entrypoint now registers 39 tools. Final native acceptance passed
+102 calls/probes; details are in invt-debugger-validation-2026-10-14.json.
+
+Readable TextDocument.GetLineId/FindLineById maps implementation rows and native
+columns, including Unicode/comments/blank lines and multiple statements per row.
+Document line IDs are part of the source fingerprint: restoring identical text
+after an edit can still invalidate the old mapping. CodeId/DataId are compared
+against the compile context and full download, with target and connection identity.
+
+OnlineManager actually reports 3.5.20.61; VersionKey/other components remain
+3.5.20.60. Reflection is narrowly gated to these observed versions. BPManager
+SetBreakpoint only registers a definition; separate EnableBreakpoint activation
+is required and tested. Call-stack frames use actual code addresses/source mapping;
+transient frame locals remain unsupported.
+
+Two-task testing confirmed other tasks continue during HALT. A 450 ms pause with
+100 ms watchdogs did not cause an exception at that halt. Later exception STOP
+also reproduced with watchdogs disabled: an initial watchdog-only hypothesis was
+rejected. Stage tracing located the exception immediately after Core Stop while
+runtime points remained active, before logout. Runtime deactivation before Stop
+avoided it but completed remaining statements (counters 0→1): this must be explicit.
+
+stop_application now requires halt_behavior=finish_cycle or abort_cycle when
+HALT. finish_cycle temporarily deactivates runtime points, finishes the cycle and
+restores activation in STOP. abort_cycle preserves the unfinished-state behavior
+and can require explicit recovery from exception STOP. No default, hidden resume,
+reset or download. Disconnect/close/session-stop refuse unresolved HALT, preserving
+project, process and values. Final accepted tests use explicit finish_cycle and
+verify refusal is mutation-free. Normal cleanup preserves foreign definitions.
+Actual owner loss/EOF uses abort, retains reporting, and may forcibly end its own IDE.
+An additional native test entered HALT before owner crash/EOF. Both owned IDEs
+exited and the source/saved copies remained. EOF acknowledged cleanup; owner crash
+exited without an acknowledgement, so graceful crash cleanup is not claimed.
+
+Earlier failed experimental reports do not prove acceptance. The old fixed
+breakpoint_proof predates the exposed protocol and its Core Stop claim concerned
+STOP state, not absence of the exception flag. Trace capture and transient locals
+remain separate uncompleted work; physical hardware remains unavailable.
+
+## Historical feasibility research before v0.5
+
+The following sections describe the initial 31-tool v0.4 implementation and its
+fixed developer probes. They are retained as research history, not the current
+capability matrix. The v0.5 update above supersedes their pending items and STOP
+assumptions. Only an owned TM750 copy and verified simulation were used.
+
+## Initial prototype progress
 
 - [x] Enumerate installed loaded assemblies and registered commands without execution.
 - [x] Find actual ScriptCommand.execute(System.String[]) despite its omission from stubs.
@@ -23,8 +67,8 @@ developer probes do not expose arbitrary code or new public debugger controls.
   and hit it in simulation. Generic user-supplied line-number mapping remains pending.
 - [x] Prove step into/over/out across PROGRAM→FB with source GUID/position IDs,
   variable changes and call-stack depth assertions.
-- [x] Selectively clear the installed breakpoint; Core Stop from HALT produces STOP
-  without resuming code, followed by graceful ordinary MCP disconnect/shutdown.
+- [x] Selectively clear the installed breakpoint; Core Stop from HALT produced STOP.
+  This initial probe did not prove absence of the exception flag; see v0.5 above.
 - [ ] Verify repeated continue/re-hit, foreign-breakpoint preservation, task/watchdog
   effects and software communication behavior; physical exchanges remain unavailable.
 - [ ] Decide which fixed operations are ready for a guarded production MCP extension.

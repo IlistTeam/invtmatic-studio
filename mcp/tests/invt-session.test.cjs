@@ -3,6 +3,28 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const {vendorArgs,inside,InvtSession}=require('../dist/invt-session');
 const workspace=path.resolve(__dirname,'../..');
+test('HALT refusal keeps session ready and never kills or resumes its child',async()=>{
+  const session=new InvtSession(workspace);let killed=false;
+  session.state='ready';session.child={};session.ipc={};
+  session.execute=async()=>({ok:false,reason:'halt_requires_explicit_stop'});
+  session.killOwned=async()=>killed=true;
+  const result=await session.stop();assert.equal(result.reason,'halt_requires_explicit_stop');
+  assert.equal(session.status().state,'ready');assert.equal(killed,false);
+});
+test('late unowned-project shutdown acknowledgement preserves the window',async()=>{
+  const fs=require('fs'),os=require('os');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'invt-shutdown-ack-'));
+  try {
+    fs.writeFileSync(path.join(directory,'shutdown_ack.json'),JSON.stringify({owned_cleanup_confirmed:false}));
+    const session=new InvtSession(workspace);let released=false;
+    session.directory=directory;session.state='ready';session.child={unref:()=>released=true};session.ipc={};
+    session.execute=async()=>({ok:true});session.killOwned=async()=>{throw Error('Must not kill the preserved window');};
+    const result=await session.stop();assert.equal(result.state,'released');assert.equal(released,true);
+  } finally {
+    for(const name of ['shutdown_ack.json','exit.signal']){const file=path.join(directory,name);if(fs.existsSync(file))fs.unlinkSync(file);}
+    fs.rmdirSync(directory);
+  }
+});
 test('vendor arguments quote values and reject quote injection',()=>{
   assert.deepEqual(vendorArgs('Invtmatic Studio V3.0','E:\\work space\\launch.py'),['--profile="Invtmatic Studio V3.0"','--runscript="E:\\work space\\launch.py"']);
   for(const s of ['bad"value','bad\nvalue','bad\0value','bad\\'])assert.throws(()=>vendorArgs(s,'x.py'));

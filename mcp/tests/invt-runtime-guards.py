@@ -6,6 +6,7 @@ import types
 import unittest
 
 root = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(root / 'src/scripts'))
 sys.modules['scriptengine'] = types.SimpleNamespace()
 sys.modules['invt_executor'] = types.SimpleNamespace(with_executor=lambda fn, *a: fn(*a))
 spec = importlib.util.spec_from_file_location('invt_runtime', root / 'src/scripts/invt_runtime.py')

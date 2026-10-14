@@ -8,8 +8,9 @@ Pinned upstream commit: `9a965c7e16cb49996de8d45596d6e15a27a39450`, MIT, v0.6.3.
 The INVT entrypoint is `dist/invt-server.js`, not upstream `dist/server.js` or
 `dist/bin.js`. It reuses upstream `IpcClient`, `ScriptManager`, and a derived
 `invt_watcher.py`; `invt-session.ts` provides the vendor-specific lifecycle.
-INVT MCP version 0.4.0 adds verified-simulation runtime tools to the v0.3 task/object
-operations. Runtime procedures and arguments are in
+INVT MCP v0.5 adds eight version-gated breakpoint/step tools to the v0.4 simulation
+and v0.3 task/object operations. Read [breakpoint-debugging.md](breakpoint-debugging.md)
+before their use. Runtime procedures and arguments are in
 [simulation-debugging.md](simulation-debugging.md). Rebuild/reconnect the server after upgrading its code;
 an existing stdio process does not reload its tool registry automatically.
 
@@ -72,7 +73,8 @@ Task parameters and call-order rules are in [tasks.md](tasks.md).
 
 Calls are sequential. A competing mutation returns busy instead of queueing an
 edit against a project that might change. ST is data (base64 JSON), not Python.
-The public MCP exposes 31 fixed tools: 16 project/lifecycle and 15 simulation tools.
+The v0.5 server exposes 39 fixed tools: 16 project/lifecycle, 15 simulation and 8
+debugger tools. The current chat may retain the earlier 31-tool registry until reconnect.
 It exposes no physical PLC control or arbitrary script execution. The local IPC directory is trusted executable material: keep
 it inside the user's workspace and do not insert third-party command files.
 
@@ -86,9 +88,10 @@ it inside the user's workspace and do not insert third-party command files.
   faulted session, then start a new one and inspect the saved copy before further
   edits. Stopping a faulted session may forcibly end only its owned process; the
   last unsaved mutation can be lost. The source input is preserved.
-- Normal stdin EOF saves/closes the owned project. A watchdog handles disappearance
-  of the MCP owner. If the IDE's UI thread is blocked, the watchdog cannot execute
-  until that thread becomes available; it is not an external crash supervisor.
+- Normal stdin EOF saves/closes the owned project. Owner loss/EOF aborts unresolved
+  HALT rather than finishing its cycle. Cleanup needs the IDE UI thread; a background
+  guardian can end only its owned IDE after 30 seconds if graceful cleanup stalls.
+  A late acknowledgement of an unowned project preserves that window.
 - If the user replaced the project in the dedicated window, normal shutdown
   releases the watcher and preserves that window. Do not manually open other
   projects in the automation window during active work.
@@ -119,12 +122,12 @@ the existing build. Use `npm run test:invt` for host regression tests.
 Live offline validation scripts: `tests/invt-live.cjs` (edit/build/export/reopen)
 and `tests/invt-lifecycle.cjs` (EOF, owner crash, timeout quarantine). They require
 the verified test project and host access to the installed IDE. Results are in
-`<test-workspace>\analysis\persistent-live-result.json` and
+`analysis/persistent-live-result.json` and
 `persistent-lifecycle-result.json`. They must never point at an online PLC.
 `tests/invt-generation-live.cjs` validates all exposed POU/DUT kinds, GVL,
 cross-object compilation, rejection before creation, correction after a failed
 creation build, export and persisted GUID/text after reopen. Its report is
-`<test-workspace>\analysis\persistent-generation-result.json`.
+`analysis/persistent-generation-result.json`.
 `tests/invt-tasks-live.cjs` verifies period/priority/watchdog, partial settings,
 program insertion order, duplicate/role/application guards, cross-task consent,
 and persisted configuration after reopen. Report: `analysis/persistent-tasks-result.json`.

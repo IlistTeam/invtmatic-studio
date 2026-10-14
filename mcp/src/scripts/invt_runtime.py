@@ -5,6 +5,7 @@ import time
 import uuid
 import traceback
 import scriptengine as se
+import invt_debugger
 from invt_executor import with_executor
 
 OPS = ('debug_capabilities', 'runtime_target', 'simulation_mode', 'connect_runtime',
@@ -73,7 +74,7 @@ def checked(project, application, request):
 
 
 def assert_offline():
-    if _attached or _forces or _uncertain:
+    if _attached or _forces or _uncertain or invt_debugger._owned:
         raise RuntimeError('Disconnect the simulation runtime before editing or rebuilding the project')
 
 
@@ -93,6 +94,8 @@ def use_online(application, callback):
 
 def state(obj):
     connected = bool(obj.is_logged_in)
+    if not connected:
+        invt_debugger.disconnected()
     result = {'connected': connected, 'uncertain_previous_operation': _uncertain}
     if connected:
         result.update(application_state=unicode(obj.application_state),
@@ -122,35 +125,56 @@ def unforce_owned(obj, expression):
     _forces.pop(expression, None)
 
 
-def detach(obj):
+def detach(obj, application=None):
     global _attached, _uncertain
     if not obj.is_logged_in:
-        if _forces:
-            raise RuntimeError('Connection lost with owned forces; cleanup unconfirmed, owned Studio recovery required')
+        if _forces or invt_debugger._owned:
+            raise RuntimeError('Connection lost with owned forces/breakpoints; cleanup unconfirmed, recover explicitly')
         _attached = False
         _uncertain = False
         return {'connected': False, 'cleaned_forces': []}
+    cleanup_trace = [{'phase': 'before_stop', 'state': state(obj)}]
+    if _attached and unicode(obj.application_state).lower() == 'halt_on_bp':
+        raise invt_debugger.HaltRequiresExplicitStop('Explicit stop_application halt_behavior required before disconnect/close/shutdown from HALT')
+    native_logout = invt_debugger.prepare_logout(application, obj) if _attached else None
+    cleanup_trace.append({'phase': 'before_stop_after_deactivate', 'state': state(obj)})
+    # HALT was refused above: disconnect must never complete a paused cycle.
+    # Quiesce the owned RUN application before removing its points/forces.
+    if _attached and unicode(obj.application_state).lower() != 'stop':
+        if unicode(obj.application_state).lower() == 'halt_on_bp':
+            invt_debugger.stop_halted(application, obj)
+        else:
+            obj.stop()
+    cleanup_trace.append({'phase': 'after_stop', 'state': state(obj)})
+    invt_debugger.cleanup(application, obj)
+    cleanup_trace.append({'phase': 'after_clear_owned', 'state': state(obj)})
     cleaned = []
     for expression in list(_forces):
         unforce_owned(obj, expression)
         cleaned.append(expression)
     # Only a runtime this MCP explicitly attached is stopped/logged out.
     if _attached:
-        if unicode(obj.application_state).lower() != 'stop':
-            obj.stop()
-        obj.logout()
+        cleanup_trace.append({'phase': 'after_deactivate', 'state': state(obj)})
+        if native_logout is not None:
+            invt_debugger.logout_core(native_logout)
+        else:
+            obj.logout()
     _attached = False
     _uncertain = False
-    return {'connected': bool(obj.is_logged_in), 'cleaned_forces': cleaned}
+    return {'connected': bool(obj.is_logged_in), 'cleaned_forces': cleaned, 'cleanup_trace': cleanup_trace}
 
 
-def cleanup(project, application):
-    if not (_attached or _forces or _uncertain):
+def cleanup(project, application, abort_halt=False):
+    if not (_attached or _forces or _uncertain or invt_debugger._owned):
         return
     info, device = target(project, application)
     if info['mode'] != 'simulation':
         raise RuntimeError('Cannot cleanup an unverified runtime target')
-    with_executor(lambda: use_online(application, detach))
+    def action(obj):
+        if abort_halt and obj.is_logged_in and _attached and unicode(obj.application_state).lower() == 'halt_on_bp':
+            invt_debugger.stop_with_behavior(application, obj, 'abort_cycle')
+        return detach(obj, application)
+    with_executor(lambda: use_online(application, action))
 
 
 def perform(project, application, request):
@@ -163,7 +187,9 @@ def perform(project, application, request):
         return {'ok': True, 'target': info, 'online_api_present': hasattr(se, 'online'),
                 'simulation_getter_present': hasattr(device, 'get_simulation_mode'),
                 'physical_runtime_allowed': False,
-                'breakpoints_step_trace': 'Not exposed by this MCP. Alternative core breakpoint/step proof passed in simulation; trace plugin present but untested. See docs/invt-debugger-research.md.',
+                'breakpoints_step_exposed': True, 'debugger_component_version': invt_debugger.CORE_VERSION,
+                'debugger_requires_owned_full_download': True, 'frame_locals_supported': False,
+                'trace_exposed': False,
                 'matrix': 'docs/invt-debug-capabilities.md'}
     if op == 'simulation_mode':
         assert_offline()
@@ -206,8 +232,12 @@ def perform(project, application, request):
             if not _attached:
                 raise RuntimeError('Login did not establish connection')
             result.update(login_option=unicode(option), boot_created=False, automatic_start=False)
+            if op == 'download_application':
+                invt_debugger.downloaded(application, obj, info)
+                result['debugger_available'] = invt_debugger._download is not None
+                result['debugger_error'] = invt_debugger._unavailable
         elif op == 'disconnect_runtime':
-            result.update(detach(obj))
+            result.update(detach(obj, application))
         elif op == 'runtime_state':
             pass
         else:
@@ -221,11 +251,16 @@ def perform(project, application, request):
                                        for expression in request['variables']]}
                 raise RuntimeError('No owned runtime connection; connect explicitly')
             if op == 'start_application':
+                if invt_debugger._active is not None and list(invt_debugger.bp_manager().GetBreakpoints(application.guid)):
+                    return {'ok': False, 'target': info, 'error': 'Breakpoints exist; use explicit debug_continue', 'state': state(obj)}
                 if unicode(obj.application_state).lower() != 'run':
                     obj.start()
             elif op == 'stop_application':
                 if unicode(obj.application_state).lower() != 'stop':
-                    obj.stop()
+                    if unicode(obj.application_state).lower() == 'halt_on_bp':
+                        result.update(invt_debugger.stop_with_behavior(application, obj, request.get('halt_behavior')))
+                    else:
+                        obj.stop()
             elif op == 'read_variables':
                 values = []
                 for expression in request['variables']:
@@ -282,6 +317,9 @@ def perform(project, application, request):
         return result
     try:
         return with_executor(lambda: use_online(application, action))
+    except invt_debugger.HaltRequiresExplicitStop as error:
+        return {'ok': False, 'target': info, 'reason': 'halt_requires_explicit_stop', 'error': unicode(error),
+                'uncertain_previous_operation': _uncertain}
     except Exception:
         if op in mutations:
             _uncertain = True

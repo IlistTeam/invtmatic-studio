@@ -21,7 +21,8 @@ this scope. Resume phase 5 only after the user reports that the PLC is available
 and explicitly requests that phase with a specified stand and action scope.
 Lack of physical hardware must not block completion of simulation acceptance.
 Connection-loss, reconnect and force-cleanup tests are simulation-only.
-Breakpoints, stepping and trace (phase 6) are local API research only.
+Phase 6 now includes the delivered v0.5 basic breakpoint/stepping bridge below.
+Transient frame locals and trace remain separate unfinished work.
 
 ## Execution order and acceptance
 
@@ -72,7 +73,7 @@ Progress is updated after evidence, not after code is merely written.
 | 4: ST scenarios | Complete | Actual MCP suite passed: absent permission, normal loading, sensor TON timeout, fault/reset, deliberately missing interlock detected, correct implementation restored and assertion rerun; same Studio PID and source unchanged |
 | 7: skill/Git | Complete | Source/installed skill synchronized and validated; capability matrix and sanitized validation summary maintained; related changes committed in invt-simulation-debugging |
 | 5: physical TM750 | Deferred: PLC unavailable | Do not execute hardware-dependent work until the PLC is available and the user requests this phase; no physical runtime operations performed. Not required for simulation acceptance |
-| 6: full debugger | Feasibility proved; production extension pending | Core breakpoint hit, step into/over/out, source GUID/position and stack depth, selective clearing and STOP from HALT proved in simulation. Generic line mapping, versioned handles, task/watchdog tests and public tools remain pending; see invt-debugger-research.md |
+| 6: full debugger | Basic v0.5 debugger delivered; advanced work pending | 39-tool stdio server passed 102 calls/probes: eight added tools, exact ST rows/columns, versioned handles, steps/stack, repeated hits, loss/recovery, foreign definitions and graceful exit. Explicit HALT stop behavior required; transient frame locals, selected frames and trace remain pending |
 
 Detailed local evidence: `analysis/runtime-api-probe.json` and
 `analysis/persistent-runtime-result.json` (latest live attempt; do not treat a
@@ -133,6 +134,40 @@ Evidence: `analysis/persistent-chat-runtime-result.json` and
 `docs/invt-debug-chat-validation-2026-10-14.json`. The earlier JSON summary's
 12-tool registry is historical (before reconnect). No additional physical-mode
 implementation is needed or authorized while the PLC is unavailable. Phase 6
-is now reopened for alternative API research described in
-[invt-debugger-research.md](invt-debugger-research.md). No production debugger
-tools have been added just because core methods were discovered.
+was reopened for alternative API research described in
+[invt-debugger-research.md](invt-debugger-research.md). The accepted v0.5 extension
+is documented below; this direct-chat acceptance remains a historical v0.4 result.
+
+## Phase 6 implementation, 2026-10-14
+
+- [x] Resolve readable TextDocument and 1-based source row/native-column mapping;
+  comments/blank lines, Unicode and two statements on one row tested.
+- [x] Bind debugger handles to target/project/app, source text and document line IDs,
+  tasks/libraries, compiled/downloaded CodeId/DataId and runtime connection session.
+- [x] Register and separately activate BPManager points; refuse ambiguous locations,
+  foreign collisions and non-owned removal. No arbitrary command interface.
+- [x] Exercise added eight tools over real stdio MCP (39-tool candidate), step
+  over/into/out across PROGRAM/FB, source-mapped frames and qualified variable values.
+- [x] Repeat continue/re-hit; stale source (including equal-text restore), old generation,
+  unexpected logout, retained ownership, explicit Keep cleanup and new generation tested.
+- [x] Two-task observation: auxiliary task continues during MainTask HALT. Initial
+  450 ms halt exceeds its 100 ms watchdog without exception; not physical proof.
+- [x] Finish foreign-point lifecycle acceptance with an explicit STOP policy.
+  Tracing located exception at Core Stop from HALT with active runtime points,
+  before logout. Deactivation before STOP permits remaining-cycle execution.
+  Caller must choose finish_cycle or abort_cycle; HALT disconnect/close/shutdown
+  otherwise refuse without mutation. No blanket watchdog-off restriction.
+- [x] Refusal preserves project/session and variable values. Explicit finish_cycle,
+  foreign-definition preservation, selective cleanup, Keep reattach and graceful
+  exit passed in the final 102-call/probe stdio suite. Abort needs explicit recovery.
+- [x] Native owner crash and stdin EOF from HALT end only the test-owned Studio;
+  source fixture and saved copy remain. EOF acknowledges cleanup. Owner crash
+  exits without acknowledgement: graceful cleanup/post-crash values are not proven.
+  The 30-second guardian timeout branch itself was not exercised by these exits.
+- [ ] Transient frame locals, selected-frame control, recursion and broader task cases.
+- [ ] Trace capture/analysis: API presence only; separate future implementation.
+
+Native failed acceptance reports are not passes. Physical PLC work remains deferred.
+Evidence: analysis/persistent-debugger-result.json and
+docs/invt-debugger-validation-2026-10-14.json. This chat still needs reconnect to
+replace the cached 31-tool registry with the verified 39-tool server.

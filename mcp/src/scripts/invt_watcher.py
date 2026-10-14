@@ -22,7 +22,7 @@ sys.path.insert(0, IPC_BASE_DIR)
 COMMANDS_DIR = os.path.join(IPC_BASE_DIR, "commands")
 RESULTS_DIR = os.path.join(IPC_BASE_DIR, "results")
 POLL_INTERVAL = 50  # milliseconds
-WATCHER_VERSION = "0.4.0"
+WATCHER_VERSION = "0.5.0"
 
 # --- Error capture file (written before anything else can fail) ---
 _ERROR_FILE = os.path.join(IPC_BASE_DIR, "watcher_error.txt")
@@ -278,8 +278,19 @@ try:
     _owner_handle = _owner.Handle
     def owner_gone():
         import invt_operations
-        if invt_operations.prepare_shutdown():
-            se.system.exit(0)
+        _log('Shutdown callback entered on primary thread')
+        try:
+            owned = invt_operations.prepare_shutdown(_owner.HasExited)
+            atomic_write(os.path.join(IPC_BASE_DIR, 'shutdown_ack.json'), json.dumps({'owned_cleanup_confirmed':bool(owned)}))
+            if owned:
+                _log('Owned cleanup confirmed; calling system.exit')
+                se.system.exit(0)
+                _log('system.exit returned')
+            else:
+                _log('Unowned project preserved during final shutdown callback')
+        except Exception as error:
+            _log('Shutdown callback failed: ' + str(error))
+            atomic_write(os.path.join(IPC_BASE_DIR, 'shutdown_ack.json'), json.dumps({'error':str(error)}))
 
     def worker():
         _log("Background worker started")
@@ -287,6 +298,23 @@ try:
             try:
                 if _owner.HasExited or os.path.exists(os.path.join(IPC_BASE_DIR, 'exit.signal')):
                     _log('MCP owner exited; save owned project and stop session')
+                    if _owner.HasExited:
+                        # No host remains to enforce the exit deadline. Preserve an
+                        # explicitly detected foreign project; otherwise end only
+                        # this watcher-owned IDE if exit/abort cleanup stays blocked.
+                        def force_owner_loss_exit():
+                            _stop_event.WaitOne(30000)
+                            ack_path = os.path.join(IPC_BASE_DIR, 'shutdown_ack.json')
+                            if os.path.exists(ack_path):
+                                with open(ack_path, 'r') as stream:
+                                    ack = json.load(stream)
+                                if ack.get('owned_cleanup_confirmed') == False:
+                                    return
+                            _log('Owner-loss exit deadline; ending this owned IDE process')
+                            Process.GetCurrentProcess().Kill()
+                        guard = Thread(ThreadStart(force_owner_loss_exit))
+                        guard.IsBackground = True
+                        guard.Start()
                     se.system.execute_on_primary_thread(owner_gone)
                     break
                 if os.path.exists(os.path.join(IPC_BASE_DIR, "terminate.signal")):

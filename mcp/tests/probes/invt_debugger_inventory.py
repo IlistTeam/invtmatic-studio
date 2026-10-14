@@ -6,7 +6,7 @@ import os
 import scriptengine as se
 import invt_operations as ops
 import invt_runtime as rt
-from System import AppDomain, Array, String, Object, Type, Enum, Int32
+from System import AppDomain, Array, String, Object, Type, Enum, Int32, Int64
 from System.Reflection import BindingFlags
 
 FLAGS = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static
@@ -356,14 +356,35 @@ def breakpoint_proof(request):
                     current_pou = core.GetType().GetField('_cpouCurrent', FLAGS).GetValue(core)
                     position = current_pou.GetSourcePositionOfBreakpoint(value)
                     event['source'] = {'guid': str(position.ObjectGuid), 'position_id': long(position.Position), 'length': int(position.Length)}
+            if label == 'breakpoint_hit':
+                result['frame_properties'] = [[{'name':p.Name,'type':unicode(p.PropertyType.FullName)} for p in e.GetType().GetProperties(FLAGS)] for e in (core.CallStack or [])]
             result['events'].append(event)
             checkpoint(label)
         installed = False
+        manager = None
+        definition = None
         try:
             if unicode(obj.application_state).lower() != 'stop':
                 raise RuntimeError('Initial STOP required')
             checkpoint('before_set_breakpoint')
-            method.Invoke(core, Array[Object]([compiled, bp, None, Array[String](['MainTask']), condition, Int32(0)]))
+            if request.get('_use_manager'):
+                manager = get_bp_manager()
+                factory = [m for m in manager.GetType().GetMethods(FLAGS) if m.Name == 'CreateBreakpoint' and len(m.GetParameters()) == 8][0]
+                definition = factory.Invoke(manager, Array[Object]([application.guid, Int32(source.ProjectHandle), program.guid,
+                    Int64(source.PositionCombination), None, Array[String](['MainTask']), condition, Int32(0)]))
+                result['definition_shape'] = shape(definition)
+                result['definition_properties'] = {p.Name:unicode(p.GetValue(definition,None)) for p in definition.GetType().GetProperties(FLAGS) if not p.GetIndexParameters().Length}
+                installed = True
+                if not manager.SetBreakpoint(definition):
+                    raise RuntimeError('BPManager refused SetBreakpoint')
+                enable = manager.GetType().GetMethod('EnableBreakpoint', FLAGS)
+                if not enable.Invoke(manager, Array[Object]([definition])):
+                    raise RuntimeError('BPManager refused runtime activation')
+                result['manager_enabled'] = bool(definition.IsEnabled)
+                result['manager_is_set'] = bool(definition.IsSet)
+                result['manager_count'] = len(manager.GetBreakpoints(application.guid))
+            else:
+                method.Invoke(core, Array[Object]([compiled, bp, None, Array[String](['MainTask']), condition, Int32(0)]))
             installed = True
             checkpoint('before_start')
             # ScriptOnline.start waits for RUN and times out when a breakpoint
@@ -396,7 +417,11 @@ def breakpoint_proof(request):
             if installed:
                 checkpoint('before_clear_breakpoint')
                 rt.checked(project, application, request)
-                core.ClearPermanentBreakpoint(compiled, bp)
+                if manager is not None:
+                    manager.ClearBreakpoint(definition)
+                    result['manager_count_after_clear'] = len(manager.GetBreakpoints(application.guid))
+                else:
+                    core.ClearPermanentBreakpoint(compiled, bp)
                 result['owned_breakpoint_cleared'] = True
             if unicode(obj.application_state).lower() != 'stop':
                 checkpoint('before_cleanup_stop')
@@ -407,4 +432,93 @@ def breakpoint_proof(request):
             result['final_state'] = unicode(obj.application_state)
             checkpoint('cleaned')
     rt.with_executor(lambda: rt.use_online(application, act))
+    return result
+
+
+def get_bp_manager():
+    asm=[a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name=='ComponentModel'][0]
+    typ=asm.GetType('_3S.CoDeSys.Core.Components.ComponentManager')
+    manager=typ.GetProperty('Singleton',FLAGS).GetValue(None,None)
+    bpasm=[a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name=='Breakpoints.plugin'][0]
+    contract=[t for t in bpasm.GetType('_3S.CoDeSys.Breakpoints.BPManager').GetInterfaces() if t.Name=='IBPManager8'][0]
+    getter=[m for m in typ.GetMethods(FLAGS) if m.Name=='GetSystemInstance' and m.IsGenericMethod and not m.GetParameters().Length][0]
+    return getter.MakeGenericMethod(Array[Type]([contract])).Invoke(manager,None)
+
+
+def manager_proof(request):
+    request=dict(request)
+    request['_use_manager']=True
+    return breakpoint_proof(request)
+
+
+def document_inventory(request):
+    from System.Diagnostics import FileVersionInfo
+    project = ops.owned()
+    application = ops.choose_application(list(project.get_children(True)), request)
+    rt.checked(project, application, request)
+    result = {'documents': []}
+    for o in application.get_children(True):
+        if not hasattr(o, 'textual_implementation') or o.get_name() not in ('PLC_PRG', 'FB_DebugProbe'):
+            continue
+        scriptdoc = o.textual_implementation
+        readable = scriptdoc.GetType().GetMethod('Readable', FLAGS).Invoke(scriptdoc, None)
+        result['documents'].append({'name':o.get_name(), 'guid':str(o.guid), 'text':scriptdoc.text,
+            'shape':shape(readable), 'all_methods':[unicode(m.ToString()) for m in readable.GetType().GetMethods(FLAGS)],
+            'properties':[unicode(p.ToString()) for p in readable.GetType().GetProperties(FLAGS)]})
+    def inspect(obj):
+        core = obj.GetType().GetProperty('Application', FLAGS).GetValue(obj, None)
+        result['core_version'] = FileVersionInfo.GetVersionInfo(core.GetType().Assembly.Location).FileVersion
+        result['core_assembly'] = unicode(core.GetType().Assembly.GetName().Version)
+        result['ids'] = {'code':str(core.CodeId), 'data':str(core.DataId), 'session':int(core.ApplicationSessionId)}
+        result['execution_methods'] = [unicode(m.ToString()) for m in core.GetType().GetMethods(FLAGS) if re.search('executionpoint|breakpoint|callstack',m.Name,re.I)]
+        result['execution_fields'] = [{'name':f.Name, 'type':unicode(f.FieldType.FullName)} for f in core.GetType().GetFields(FLAGS) if re.search('executionpoint|breakpoint|callstack|bpoint',f.Name,re.I)]
+        result['stack'] = [shape(e) for e in (core.CallStack or [])]
+    rt.with_executor(lambda:rt.use_online(application,inspect))
+    return result
+
+
+def mapping_inventory(request):
+    project=ops.owned()
+    application=ops.choose_application(list(project.get_children(True)), request)
+    rt.checked(project,application,request)
+    result={'pous':[]}
+    assembly=[a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name=='SystemInstances'][0]
+    model=assembly.GetType('_3S.CoDeSys.Core.SystemInstances').GetProperty('LanguageModelMgr',FLAGS).GetValue(None,None)
+    context=model.GetCompileContext(application.guid)
+    result['context_shape']=shape(context)
+    for o in application.get_children(True):
+        if not hasattr(o,'textual_implementation') or o.get_name() not in ('PLC_PRG','FB_DebugProbe'):
+            continue
+        doc=o.textual_implementation.GetType().GetMethod('Readable',FLAGS).Invoke(o.textual_implementation,None)
+        item={'guid':str(o.guid),'name':o.get_name(),'linecount':doc.LineCount,
+            'lines':[{'index':i,'id':long(doc.GetLineId(i)),'text':unicode(doc.GetLineText(i))} for i in range(doc.LineCount)],'positions':[]}
+        cp=[p for p in context.GetAllCompiledPOUsEx() if str(p.ObjectGuid)==str(o.guid)][0]
+        for bp in cp.BreakpointList:
+            sp=cp.GetSourcePositionOfBreakpoint(bp)
+            item['positions'].append({'offset':int(bp.Offset),'position':long(sp.Position),'length':int(sp.Length),
+                'props':{p.Name:unicode(p.GetValue(sp,None)) for p in sp.GetType().GetProperties(FLAGS) if not p.GetIndexParameters().Length},
+                'methods':[unicode(m.ToString()) for m in sp.GetType().GetMethods(FLAGS)]})
+        result['pous'].append(item)
+    def inspect(obj):
+        core=obj.GetType().GetProperty('Application',FLAGS).GetValue(obj,None)
+        result['sorter']=shape(core.BreakpointSorter)
+        result['sorter_properties']=[unicode(p.ToString()) for p in core.BreakpointSorter.GetType().GetProperties(FLAGS)]
+    rt.with_executor(lambda:rt.use_online(application,inspect))
+    return result
+
+
+def manager_inventory(request):
+    project=ops.owned()
+    application=ops.choose_application(list(project.get_children(True)),request)
+    rt.checked(project,application,request)
+    asm=[a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name=='ComponentModel'][0]
+    typ=asm.GetType('_3S.CoDeSys.Core.Components.ComponentManager')
+    manager=typ.GetProperty('Singleton',FLAGS).GetValue(None,None)
+    bpasm=[a for a in AppDomain.CurrentDomain.GetAssemblies() if a.GetName().Name=='Breakpoints.plugin'][0]
+    contract=[t for t in bpasm.GetType('_3S.CoDeSys.Breakpoints.BPManager').GetInterfaces() if t.Name=='IBPManager8'][0]
+    getter=[m for m in typ.GetMethods(FLAGS) if m.Name=='GetSystemInstance' and m.IsGenericMethod and not m.GetParameters().Length][0]
+    bpm=getter.MakeGenericMethod(Array[Type]([contract])).Invoke(manager,None)
+    points=bpm.GetType().GetField('_breakpoints',FLAGS).GetValue(bpm)
+    result={'shape':shape(bpm),'project_handle':None,'points':[shape(p) for p in points],
+        'contracts':[{ 'name':i.FullName,'methods':[unicode(m.ToString()) for m in i.GetMethods()]} for i in bpm.GetType().GetInterfaces()]}
     return result

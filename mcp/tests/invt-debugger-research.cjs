@@ -3,7 +3,7 @@ const {InvtSession}=require('../dist/invt-session');
 const fs=require('fs'),path=require('path'),assert=require('assert/strict');
 const workspace=path.resolve(__dirname,'../..'),session=new InvtSession(workspace);
 const stage=process.argv[2]||'inventory';
-if(!['inventory','core_inventory','execution_probe','model_inventory','breakpoint_inventory','breakpoint_proof'].includes(stage))throw Error('Unknown fixed research stage');
+if(!['inventory','core_inventory','execution_probe','model_inventory','breakpoint_inventory','breakpoint_proof','document_inventory','mapping_inventory','manager_inventory','manager_proof'].includes(stage))throw Error('Unknown fixed research stage');
 const report={date:'2026-10-14',stage,steps:[]};
 function verifyProof(inv){
  const events=inv.events.filter(e=>e.values);
@@ -35,7 +35,7 @@ if(process.argv[3]==='--verify-saved'){
   if(stage!=='inventory'){
    await call('create_pou',{application_guid,name:'FB_DebugProbe',pou_type:'function_block',declaration:'FUNCTION_BLOCK FB_DebugProbe\nVAR\n nInside : UDINT;\nEND_VAR',implementation:'nInside := nInside + 1;\nnInside := nInside + 10;'});
    const pou=inspected.objects.find(o=>o.name==='PLC_PRG'&&o.implementation!==undefined);
-   await call('patch_st',{application_guid,object_guid:pou.guid,declaration:'PROGRAM PLC_PRG\nVAR\n nCycle : UDINT;\n nAfter : UDINT;\n fbProbe : FB_DebugProbe;\nEND_VAR',implementation:'nCycle := nCycle + 1;\nfbProbe();\nnAfter := nAfter + 1;'});
+   await call('patch_st',{application_guid,object_guid:pou.guid,declaration:'PROGRAM PLC_PRG\nVAR\n nCycle : UDINT;\n nAfter : UDINT;\n fbProbe : FB_DebugProbe;\nEND_VAR',implementation:stage==='mapping_inventory'?'(* Кириллица, пустая строка и два оператора в одной строке *)\n\n  nCycle := nCycle + 1; nAfter := nAfter + 1;\nfbProbe();\nnAfter := nAfter + 1;':'nCycle := nCycle + 1;\nfbProbe();\nnAfter := nAfter + 1;'});
   }
   const target=(await call('runtime_target',{application_guid})).target;
   const sim=await call('simulation_mode',{application_guid,target_id:target.target_id,enabled:true});
@@ -46,8 +46,8 @@ if(process.argv[3]==='--verify-saved'){
   report.wire={success:wire.success,error:wire.error,requestId:wire.requestId};
   assert.ok(wire.success,JSON.stringify(wire));
   report.inventory=JSON.parse(wire.output.split(/\r?\n/).find(l=>l.startsWith('DEBUGGER_INVENTORY:')).slice('DEBUGGER_INVENTORY:'.length));
-  if(stage==='breakpoint_proof' && report.inventory.error)throw Error(report.inventory.error);
-  if(stage==='breakpoint_proof')verifyProof(report.inventory);
+  if(['breakpoint_proof','manager_proof'].includes(stage) && report.inventory.error)throw Error(report.inventory.error);
+  if(['breakpoint_proof','manager_proof'].includes(stage))verifyProof(report.inventory);
   await call('disconnect_runtime',request);report.passed=true;
   console.log(JSON.stringify({stage,command_count:report.inventory.commands?.length,assemblies:report.inventory.assemblies?.map(a=>({name:a.name,types:a.types.length})),core_type:report.inventory.core_shape?.type,model_types:report.inventory.model_types?.map(t=>t.name)}));
  }catch(e){report.passed=false;report.error=String(e);console.error(e);process.exitCode=1;if(/timed out/i.test(String(e))){session.state='faulted';session.lastError=String(e);report.transport_quarantined=true;}}

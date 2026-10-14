@@ -62,7 +62,7 @@ export class InvtSession {
       this.directory = path.join(sessionRoot, randomUUID());
       fs.mkdirSync(this.directory);
       const manager = new ScriptManager();
-      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py']) {
+      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py', 'invt_debugger.py']) {
         fs.copyFileSync(path.join(__dirname,'scripts',name), path.join(this.directory,name));
       }
       const watcher = path.join(this.directory, 'watcher.py');
@@ -172,16 +172,22 @@ export class InvtSession {
     if (child.exitCode===null && child.signalCode===null) throw new Error('Owned Studio process did not exit');
     if(this.child===child)this.child=null;
   }
-  async stop(): Promise<any> {
+  async stop(abortHalt=false): Promise<any> {
     if(this.pending) await this.pending.catch(()=>{});
     return this.exclusive(async()=>{
       const wasFaulted=this.state==='faulted';
       this.state='stopping';
       let graceful=false;
+      let cleanupConfirmed=false;
+      let forcedTermination=false;
       let cleanupError:string|null=null;
       if(this.child && this.ipc && !wasFaulted) {
         try {
-          const answer=await this.execute({operation:'prepare_shutdown'});
+          const answer=await this.execute({operation:'prepare_shutdown',abort_halt:abortHalt});
+          if(!answer.ok && answer.reason==='halt_requires_explicit_stop') {
+            this.state='ready';
+            return {...answer,session:this.status()};
+          }
           if(!answer.ok && answer.reason==='unowned_project') {
             // User opened another project in our window. Release the watcher but
             // preserve that window and its contents; never kill an unowned project.
@@ -190,15 +196,29 @@ export class InvtSession {
             return {ok:false,state:'released',reason:'Unowned project preserved'};
           }
           if(!answer.ok)throw new Error('Owned project/runtime cleanup failed: '+JSON.stringify(answer));
+          cleanupConfirmed=true;
           fs.writeFileSync(path.join(this.directory!,'exit.signal'),'');
-          const until=Date.now()+10000;
-          while(this.child && Date.now()<until)await sleep(100);
+          const until=Date.now()+30000;
+          while(this.child && Date.now()<until) {
+            const acknowledgement=path.join(this.directory!,'shutdown_ack.json');
+            if(fs.existsSync(acknowledgement)) {
+              const ack=JSON.parse(fs.readFileSync(acknowledgement,'utf8'));
+              if(ack.owned_cleanup_confirmed===false) {
+                this.child.unref();this.child=null;this.state='released';
+                return {ok:false,state:'released',reason:'Unowned project preserved during final shutdown'};
+              }
+              if(ack.error)throw new Error('Final shutdown callback failed: '+ack.error);
+            }
+            await sleep(100);
+          }
           graceful=!this.child;
         } catch(e) {this.lastError=String(e);cleanupError=String(e);}
       }
+      forcedTermination=!!this.child;
       await this.killOwned();
       this.state='stopped'; this.ipc=null; this.projectCopy=null;
-      return {ok:!cleanupError,graceful,directory:this.directory,cleanup_error:cleanupError};
+      return {ok:!cleanupError,graceful,forced_termination:forcedTermination,runtime_cleanup_confirmed:cleanupConfirmed,
+        directory:this.directory,cleanup_error:cleanupError};
     });
   }
 }

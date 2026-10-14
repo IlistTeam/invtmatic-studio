@@ -8,6 +8,7 @@ from invt_project import describe, diagnostics, library_inventory, select
 import invt_creation
 import invt_tasks
 import invt_runtime
+import invt_debugger
 
 _project = None
 _path = None
@@ -30,7 +31,7 @@ def within(path):
     return resolved
 
 
-def prepare_shutdown():
+def prepare_shutdown(abort_halt=False):
     global _project, _path
     if se.projects.primary is not None:
         try:
@@ -39,7 +40,7 @@ def prepare_shutdown():
             return False
         objects = list(project.get_children(True))
         for application in [o for o in objects if getattr(o, 'is_application', False)]:
-            invt_runtime.cleanup(project, application)
+            invt_runtime.cleanup(project, application, abort_halt)
         project.save()
         project.close()
     _project = None
@@ -118,7 +119,7 @@ def perform(request):
     if op == 'ping':
         return {'ok': True, 'pid': os.getpid(), 'project': _path}
     if op == 'prepare_shutdown':
-        prepared = prepare_shutdown()
+        prepared = prepare_shutdown(bool(request.get('abort_halt', False)))
         return {'ok': prepared, 'reason': None if prepared else 'unowned_project'}
     if op == 'open_copy':
         if se.projects.primary is not None:
@@ -129,6 +130,8 @@ def perform(request):
         return {'ok': True, 'project': _path, 'diagnostics': diagnostics()}
     project = owned()
     objects = list(project.get_children(True))
+    if op in invt_debugger.OPS:
+        return invt_debugger.perform(project, choose_application(objects, request), request)
     if op in invt_runtime.OPS:
         application = choose_application(objects, request)
         if op == 'download_application':
@@ -194,6 +197,8 @@ def perform(request):
 def dispatch(request):
     try:
         result = perform(request)
+    except invt_debugger.HaltRequiresExplicitStop as error:
+        result = {'ok': False, 'reason': 'halt_requires_explicit_stop', 'error': unicode(error)}
     except Exception:
         result = {'ok': False, 'exception': traceback.format_exc()}
     result['runtime_scope'] = 'verified_simulation_only'

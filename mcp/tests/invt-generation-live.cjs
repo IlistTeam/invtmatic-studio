@@ -22,7 +22,7 @@ async function call(name,args={},expected=true){
 (async()=>{
   try{
     await client.connect(transport);
-    report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,31);
+    report.tools=(await client.listTools()).tools.map(t=>t.name);assert.equal(report.tools.length,39);
     const started=await call('invt_session_start');managed=true;report.studio_pid=started.pid;
     await call('invt_open_copy',{project:source,expected_sha256:report.source_sha256});
     const inspected=await call('invt_inspect');
