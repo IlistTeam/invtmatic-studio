@@ -30,10 +30,10 @@
   "author": "luke-harriman",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IlistTeam/Skills.git",
-    "directory": "invtmatic-studio/mcp"
+    "url": "https://github.com/IlistTeam/invtmatic-studio.git",
+    "directory": "mcp"
   },
-  "homepage": "https://github.com/luke-harriman/Codesys-MCP#readme",
+  "homepage": "https://github.com/IlistTeam/invtmatic-studio#readme",
   "license": "MIT",
   "engines": {
     "node": ">=18"

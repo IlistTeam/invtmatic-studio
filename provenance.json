@@ -87,5 +87,18 @@
     "credentials and local config",
     "unrelated source files",
     "unvalidated upstream online entrypoints/scripts"
-  ]
+  ],
+  "standalone_migration": {
+    "date": "2026-10-14",
+    "source_repository": "https://github.com/IlistTeam/Skills",
+    "source_commit": "e848c283843ebf647d530bc6747af2932ed390f6",
+    "source_prefix": "invtmatic-studio",
+    "filtered_history_head": "198ced5f80eeefcb19768546bf4accdaf53ad371",
+    "destination_repository": "https://github.com/IlistTeam/invtmatic-studio",
+    "changes": [
+      "Package becomes repository root with filtered package-only history",
+      "Installation URLs, repository metadata and CI paths updated",
+      "Executable MCP/fallback code, tests and fixture copied unchanged"
+    ]
+  }
 }

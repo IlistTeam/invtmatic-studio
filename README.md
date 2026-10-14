@@ -18,11 +18,11 @@ MCP создаёт собственное окно Studio и работает с
 На другом компьютере скопируйте этот промпт в чат Codex:
 
 ```text
-Установи навык invtmatic-studio вместе с постоянным MCP из https://github.com/IlistTeam/Skills/tree/main/invtmatic-studio по инструкции README.md. Собери сервер, выполни тесты и зарегистрируй invtmatic-persistent в Codex для папки E:\PLCProjects. Сохрани остальные настройки Codex и проверь подключение MCP.
+Установи навык invtmatic-studio вместе с постоянным MCP из https://github.com/IlistTeam/invtmatic-studio по инструкции README.md. Собери сервер, выполни тесты и зарегистрируй invtmatic-persistent в Codex для папки E:\PLCProjects. Сохрани остальные настройки Codex и проверь подключение MCP.
 ```
 
-Замените `E:\PLCProjects` на свою папку проектов. Для приватного репозитория
-нужна авторизация GitHub с доступом к `IlistTeam/Skills`.
+Замените `E:\PLCProjects` на свою папку проектов. Репозиторий публичный;
+для обычного клонирования авторизация GitHub не требуется.
 
 ### Установка вручную
 
@@ -34,8 +34,8 @@ Node/npm и Codex. Для резервного адаптера и guard-тес�
 навыка в каталог навыков Codex. Пример PowerShell для **новой** установки:
 
 ```powershell
-git clone https://github.com/IlistTeam/Skills.git C:\Tools\Skills
-$packageRoot = 'C:\Tools\Skills\invtmatic-studio'
+git clone https://github.com/IlistTeam/invtmatic-studio.git C:\Tools\invtmatic-studio
+$packageRoot = 'C:\Tools\invtmatic-studio'
 $skillDestination = Join-Path $env:USERPROFILE '.codex\skills\invtmatic-studio'
 if (Test-Path -LiteralPath $skillDestination) { throw 'Навык уже установлен: сначала сравните версии' }
 New-Item -ItemType Directory -Path $skillDestination -Force | Out-Null
@@ -75,7 +75,7 @@ codex mcp add invtmatic-persistent -- $nodeExecutable $serverEntrypoint --worksp
 ```toml
 [mcp_servers.invtmatic-persistent]
 command = 'C:\Program Files\nodejs\node.exe'
-args = ['C:\Tools\Skills\invtmatic-studio\mcp\dist\invt-server.js', '--workspace', 'E:\PLCProjects']
+args = ['C:\Tools\invtmatic-studio\mcp\dist\invt-server.js', '--workspace', 'E:\PLCProjects']
 startup_timeout_sec = 30
 tool_timeout_sec = 180
 ```

@@ -22,7 +22,7 @@ criteria. Instructions alone cannot add an API operation or test physical behavi
 | Read-only diff/impact planning, ST expected-hash guard, grouped changes and one final build | Inspect → prepare dependency-ordered changes → review diff → apply → verify | Concurrent/manual edits detected; error retains an inspectable state/checkpoint; no automatic replay after timeout |
 | Deterministic ST/manifest export and import into known objects | Git sources, source/project drift detection, reproducible revisions | Regenerate/update a copy from a checked-out text revision; reported GUID/path mapping and build result |
 
-Published Git layout: `invtmatic-studio/` contains skill resources, `mcp/` sources,
+Standalone Git layout: the repository root contains skill resources, `mcp/` sources,
 and the fixed TM750 test fixture. Dependencies, builds, session outputs and raw
 investigation artifacts are ignored. Installed skill and `dist/` are deployment
 copies. Build the INVT entrypoint, not upstream `server.js`. Pinned upstreams and
