@@ -52,6 +52,12 @@ frame. Repeated/recursive POU frames are explicitly refused.
 Step source/stack changes and values should agree with the intended statement;
 reads remain sequential and are not an atomic application snapshot.
 
+Step Out can halt at a continuation of the caller's function-call statement:
+the callee frame is gone, while assignment of its returned value is still pending.
+Direct chat testing observed nIntermediate=0 on that caller row, then 2214 after
+one Step Over to the next row. Use fresh frames and the actual source position;
+do not infer that the caller assignment completed merely from the callee's return.
+
 **HALT pauses the debugged task, not all tasks.** Native two-task testing showed
 AuxTask continued while MainTask halted. A two-task profile with 100 ms watchdogs
 survived a 450 ms explicit halt; this observation does not establish physical
