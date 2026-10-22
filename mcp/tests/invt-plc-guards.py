@@ -124,4 +124,3 @@ class PhysicalGuards(unittest.TestCase):
         self.assertEqual(obj.calls,[]);self.assertTrue(plc._attached)
 
 if __name__=='__main__':unittest.main()
-
