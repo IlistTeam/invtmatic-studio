@@ -10,6 +10,8 @@ import invt_tasks
 import invt_runtime
 import invt_debugger
 import invt_trace
+import invt_hardware
+import invt_plc
 
 _project = None
 _path = None
@@ -41,6 +43,7 @@ def prepare_shutdown(abort_halt=False):
             return False
         objects = list(project.get_children(True))
         for application in [o for o in objects if getattr(o, 'is_application', False)]:
+            invt_plc.cleanup(project, application)
             invt_runtime.cleanup(project, application, abort_halt)
         project.save()
         project.close()
@@ -129,8 +132,23 @@ def perform(request):
         _project = se.projects.open(candidate)
         _path = candidate
         return {'ok': True, 'project': _path, 'diagnostics': diagnostics()}
+    if op in invt_hardware.OPS:
+        return invt_hardware.perform(request)
     project = owned()
     objects = list(project.get_children(True))
+    if op in invt_plc.OPS:
+        application = choose_application(objects, request)
+        if op == 'plc_download':
+            invt_plc.checked(project, application, request)
+            invt_runtime.assert_offline()
+            build = {'ok': False}
+            rebuild(project, application, build)
+            if not build['build_ok']:
+                return build
+        result = invt_plc.perform(project, application, request)
+        result['runtime_scope'] = 'explicit_physical_plc'
+        result['physical_runtime_allowed'] = True
+        return result
     if op in invt_trace.OPS:
         return invt_trace.perform(project, choose_application(objects, request), request)
     if op in invt_debugger.OPS:
@@ -151,6 +169,7 @@ def perform(request):
                 'libraries': library_inventory(objects), 'diagnostics': diagnostics()}
     if op == 'close_project':
         for application in [o for o in objects if getattr(o, 'is_application', False)]:
+            invt_plc.cleanup(project, application)
             invt_runtime.cleanup(project, application)
         project.save()
         project.close()
@@ -204,6 +223,7 @@ def dispatch(request):
         result = {'ok': False, 'reason': 'halt_requires_explicit_stop', 'error': unicode(error)}
     except Exception:
         result = {'ok': False, 'exception': traceback.format_exc()}
-    result['runtime_scope'] = 'verified_simulation_only'
-    result['physical_runtime_allowed'] = False
+    physical = request.get('operation') in invt_plc.OPS
+    result.setdefault('runtime_scope', 'explicit_physical_plc' if physical else 'verified_simulation_only')
+    result.setdefault('physical_runtime_allowed', physical and os.environ.get('INVT_MCP_PHYSICAL_RUNTIME') == '1')
     return result

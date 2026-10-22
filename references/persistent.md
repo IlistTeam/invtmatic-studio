@@ -73,9 +73,12 @@ Task parameters and call-order rules are in [tasks.md](tasks.md).
 
 Calls are sequential. A competing mutation returns busy instead of queueing an
 edit against a project that might change. ST is data (base64 JSON), not Python.
-The v0.6 server exposes 44 fixed tools: 16 project/lifecycle, 15 simulation,
+The default server exposes 44 fixed tools: 16 project/lifecycle, 15 simulation,
 9 debugger/frame tools and 4 trace tools. Read advanced-debugging.md for the latter. The current chat may retain the earlier 31-tool registry until reconnect.
-It exposes no physical PLC control or arbitrary script execution. The local IPC directory is trusted executable material: keep
+Version 0.7 optionally adds two address-scoped discovery tools, and ten separate
+physical PLC tools with `--physical-runtime`. See [physical-plc.md](physical-plc.md)
+for the exact options, binding and logout policy. No arbitrary script execution
+is exposed. The local IPC directory is trusted executable material: keep
 it inside the user's workspace and do not insert third-party command files.
 
 ## Failure handling

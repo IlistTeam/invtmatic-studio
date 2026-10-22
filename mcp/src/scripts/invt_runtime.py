@@ -75,6 +75,8 @@ def checked(project, application, request):
 
 
 def assert_offline():
+    import invt_plc
+    invt_plc.assert_offline()
     if _attached or _forces or _uncertain or invt_debugger._owned or invt_trace.has_packets():
         raise RuntimeError('Disconnect the simulation runtime before editing or rebuilding the project')
 

@@ -1,7 +1,7 @@
 {
   "name": "invtmatic-studio-mcp",
-  "version": "0.6.0",
-  "description": "INVTmatic Studio project development and positively verified simulation MCP",
+  "version": "0.7.0",
+  "description": "INVTmatic Studio project development, simulation and explicit TM751 physical commissioning MCP",
   "main": "dist/invt-server.js",
   "bin": {
     "invtmatic-studio-mcp": "dist/invt-server.js"
@@ -16,7 +16,7 @@
     "build:invt": "tsc && node -e \"require('fs').cpSync('src/scripts','dist/scripts',{recursive:true})\"",
     "test": "npm run test:invt",
     "test:invt": "node --test tests/invt-session.test.cjs",
-    "test:guards": "python tests/invt-runtime-guards.py && python tests/invt-debugger-guards.py && python tests/invt-advanced-guards.py",
+    "test:guards": "python tests/invt-runtime-guards.py && python tests/invt-debugger-guards.py && python tests/invt-advanced-guards.py && python tests/invt-hardware-discovery.py && python tests/invt-plc-guards.py",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

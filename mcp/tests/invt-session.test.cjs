@@ -3,6 +3,32 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const {vendorArgs,inside,InvtSession}=require('../dist/invt-session');
 const workspace=path.resolve(__dirname,'../..');
+
+test('physical discovery requires explicit host opt-in before an IDE command',async()=>{
+  const session=new InvtSession(workspace);session.state='ready';let called=false;
+  session.execute=async()=>{called=true;return {ok:true};};
+  await assert.rejects(session.call({operation:'plc_find'}),/not enabled/);
+  assert.equal(called,false);
+  assert.equal(session.status().state,'ready');
+  assert.equal(session.status().physical_runtime_allowed,false);
+});
+
+test('physical discovery refuses public, loopback, malformed and broadcast addresses',()=>{
+  for(const address of ['8.8.8.8','127.0.0.1','224.0.0.1','192.168.03.10','192.168.3.255','192.168.3.0','192.168.3.10\n']) {
+    assert.throws(()=>new InvtSession(workspace,undefined,undefined,60000,address),/private unicast/);
+  }
+  const session=new InvtSession(workspace,undefined,undefined,60000,'192.168.3.10');
+  assert.equal(session.status().physical_address,'192.168.3.10');
+  assert.equal(session.status().physical_runtime_allowed,false);
+});
+
+test('an address alone cannot enable physical runtime tools',async()=>{
+  assert.throws(()=>new InvtSession(workspace,undefined,undefined,60000,undefined,true),/explicit PLC address/);
+  const session=new InvtSession(workspace,undefined,undefined,60000,'192.168.3.10');
+  session.state='ready';let called=false;session.execute=async()=>{called=true;return {ok:true};};
+  await assert.rejects(session.call({operation:'plc_download'}),/runtime was not enabled/);
+  assert.equal(called,false);assert.equal(session.status().state,'ready');
+});
 test('HALT refusal keeps session ready and never kills or resumes its child',async()=>{
   const session=new InvtSession(workspace);let killed=false;
   session.state='ready';session.child={};session.ipc={};

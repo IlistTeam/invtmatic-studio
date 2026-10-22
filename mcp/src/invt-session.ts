@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { randomUUID, createHash } from 'crypto';
+import { isIP } from 'net';
 import { IpcClient, DEFAULT_IPC_CONFIG } from './ipc';
 import { ScriptManager } from './script-manager';
 
@@ -32,14 +33,17 @@ export class InvtSession {
   private sourceHash: string | null = null;
   readonly workspace: string;
   constructor(workspace: string, private exe = INVT_EXE, private profile = INVT_PROFILE,
-              private timeout = 60000) {
+              private timeout = 60000, private physicalAddress?: string, private physicalRuntime = false) {
     this.workspace = fs.realpathSync(workspace);
     if (!Number.isFinite(timeout) || timeout < 100 || timeout > 180000) throw new Error('Invalid command timeout');
+    if (physicalAddress && (isIP(physicalAddress)!==4 || !/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(physicalAddress) || /\.(0|255)$/.test(physicalAddress))) throw new Error('Physical discovery requires a private unicast IPv4 address');
+    if (physicalRuntime && !physicalAddress) throw new Error('Physical runtime requires an explicit PLC address');
   }
   status(): any {
     return { state: this.state, pid: this.child?.pid ?? null, directory: this.directory,
       project_copy: this.projectCopy, source_project: this.source, source_sha256: this.sourceHash,
-      busy: !!this.pending, last_error: this.lastError, runtime_scope: 'verified_simulation_only', physical_runtime_allowed: false };
+      busy: !!this.pending, last_error: this.lastError, runtime_scope: this.physicalRuntime ? 'simulation_and_explicit_physical_tools' : 'verified_simulation_only', physical_runtime_allowed: this.physicalRuntime,
+      physical_discovery_allowed: !!this.physicalAddress, physical_address: this.physicalAddress ?? null };
   }
   private exclusive<T>(operation: () => Promise<T>): Promise<T> {
     if (this.pending) return Promise.reject(new Error('Session busy; wait for current command'));
@@ -62,7 +66,7 @@ export class InvtSession {
       this.directory = path.join(sessionRoot, randomUUID());
       fs.mkdirSync(this.directory);
       const manager = new ScriptManager();
-      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py', 'invt_debugger.py', 'invt_frames.py', 'invt_trace.py']) {
+      for (const name of ['invt_project.py', 'invt_operations.py', 'invt_creation.py', 'invt_tasks.py', 'invt_runtime.py', 'invt_executor.py', 'invt_debugger.py', 'invt_frames.py', 'invt_trace.py', 'invt_hardware.py', 'invt_plc.py']) {
         fs.copyFileSync(path.join(__dirname,'scripts',name), path.join(this.directory,name));
       }
       const watcher = path.join(this.directory, 'watcher.py');
@@ -74,7 +78,8 @@ export class InvtSession {
       const err = fs.openSync(path.join(this.directory,'stderr.log'),'w');
       const child = spawn(this.exe, vendorArgs(this.profile,watcher), {
         shell:false, windowsVerbatimArguments:true, windowsHide:true, cwd:path.dirname(this.exe),
-        stdio:['ignore',out,err], env:{...process.env, INVT_MCP_OWNER_PID:String(process.pid), INVT_IPC_SESSION:this.directory}
+        stdio:['ignore',out,err], env:{...process.env, INVT_MCP_OWNER_PID:String(process.pid), INVT_IPC_SESSION:this.directory,
+          INVT_MCP_PHYSICAL_ADDRESS: this.physicalAddress ?? '', INVT_MCP_PHYSICAL_RUNTIME: this.physicalRuntime ? '1' : ''}
       });
       fs.closeSync(out); fs.closeSync(err);
       this.child = child;
@@ -119,6 +124,8 @@ export class InvtSession {
     return this.exclusive(async () => {
       if (this.state!=='ready') throw new Error('Session not ready; start or restart it');
       const prepared = {...request};
+      if (['plc_gateways', 'plc_find'].includes(request.operation) && !this.physicalAddress) throw new Error('Physical discovery was not enabled for this server');
+      if (request.operation.startsWith('plc_') && !['plc_gateways','plc_find'].includes(request.operation) && !this.physicalRuntime) throw new Error('Physical runtime was not enabled for this server');
       let copy: string | null = null;
       if (request.operation==='open_copy') {
         if (this.projectCopy) throw new Error('Close the current project before opening another');
