@@ -7,9 +7,11 @@ import { InvtSession } from './invt-session';
 
 const options = new Command().requiredOption('--workspace <path>')
   .option('--exe <path>').option('--profile <name>')
+  .option('--physical-address <ipv4>', 'Enable read-only discovery of this explicit private PLC address')
+  .option('--physical-runtime', 'Additionally expose explicit physical PLC binding and application operations')
   .option('--timeout-ms <number>', 'Command deadline', '60000').parse().opts();
-const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs));
-const server = new McpServer({name:'invtmatic-persistent', version:'0.6.0'});
+const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs), options.physicalAddress, !!options.physicalRuntime);
+const server = new McpServer({name:'invtmatic-persistent', version:'0.7.0'});
 // SDK's complex overload inference is also avoided by the upstream server.
 const api = server as any;
 const guid = z.string().uuid();
@@ -38,6 +40,30 @@ const reply = async (operation:()=>Promise<any>|any) => {
 };
 api.tool('invt_session_start', 'Start one owned UI-initialized Studio and verify primary-thread IPC.', {}, ()=>reply(()=>session.start()));
 api.tool('invt_session_status', 'Read persistent session status without touching Studio.', {}, ()=>reply(()=>session.status()));
+if (options.physicalAddress) {
+  api.tool('invt_get_plc_gateways', 'Read configured Studio gateways. Does not scan, log in, download or start a PLC.', {},
+    ()=>reply(()=>session.call({operation:'plc_gateways'})));
+  api.tool('invt_find_plc', 'Resolve only the explicitly configured physical PLC IP through the selected gateway. Read cached target identity if available; no broad scan, login or runtime change.',
+    {gateway_guid:guid}, (args:any)=>reply(()=>session.call({operation:'plc_find',...args})));
+}
+if (options.physicalRuntime) {
+  api.tool('invt_bind_plc','Bind the open physical-mode project to the explicit PLC IP and selected gateway. Connect only to read actual identity and require a matching device ID; no application login or download.',
+    {...application,application_guid:guid,gateway_guid:guid,expected_device_id:z.string().min(1).max(128)},
+    (args:any)=>reply(()=>session.call({operation:'plc_bind',...args})));
+  for (const [name,operation,description] of [
+    ['invt_get_plc_target','plc_target','Read the current explicit physical target binding.'],
+    ['invt_connect_plc','plc_connect','Explicit physical login with Keep: no download or update. Returns a fresh target_id.'],
+    ['invt_disconnect_plc','plc_disconnect','Logout the owned physical application without stopping it. Returns a fresh target_id.'],
+    ['invt_get_plc_state','plc_state','Read physical connection and execution state without auto-login.'],
+    ['invt_download_plc','plc_download','Fresh rebuild and explicit full download to the bound physical PLC. Disable automatic boot creation, preserve foreign applications and do not start. Returns a fresh target_id.'],
+    ['invt_start_plc','plc_start','Explicit RUN on the owned physical connection; verify read-back.'],
+    ['invt_stop_plc','plc_stop','Explicit STOP on the owned physical connection; reject unverified HALT recovery.']
+  ]) api.tool(name,description,runtime,(args:any)=>reply(()=>session.call({operation,...args})));
+  api.tool('invt_read_plc_variables','Read fresh values from the owned physical PLC connection; no automatic login.',
+    {...runtime,variables},(args:any)=>reply(()=>session.call({operation:'plc_read',...args})));
+  api.tool('invt_write_plc_variable','Normal write on the owned physical connection, with fresh before/after values. No forcing.',
+    {...runtime,variable,value:z.string().min(1).max(4096)},(args:any)=>reply(()=>session.call({operation:'plc_write',...args})));
+}
 api.tool('invt_open_copy', 'Open a fresh copy of a workspace .project. Source is preserved.', {
   project:z.string().min(1), expected_sha256:z.string().regex(/^[a-f0-9]{64}$/).optional()
 }, (args:any)=>reply(()=>session.call({operation:'open_copy',...args})));

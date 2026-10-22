@@ -1,5 +1,21 @@
 # Verified local environment
 
+## Additional computer, verified 2026-10-22
+
+Installed the official 3.0.1.4 base plus vendor 3.0.1.8 update. Installed manifest
+reports program 3.0.1.8 / packages 3.0.2.4 / help 3.0.0.2; the launcher file
+version remains 3.0.1.3. Executable/profile paths below are unchanged. The updated
+Studio passed native MCP project/build checks and physical TM751-C USB tests:
+identity, full download, RUN/STOP, normal variable read/write and reconnect.
+ScriptEngine 4.1.0.0, OnlineManager 3.5.20.61, ApplicationObject 3.5.20.60.
+TM751 description: type 4102, ID `1631 0051`, version 3.5.15.20. Connected
+GetTargetIdent reports TM751-C and runtime version 3.5.15.20; this is not a full
+vendor firmware build identifier. Procedure: [physical-plc.md](physical-plc.md).
+The older simulation debugger/trace validation below remains distinct from the
+new physical acceptance. Keep Application's default name: renaming it hung.
+
+## Original simulation installation
+
 Verified 2026-10-13 on this computer. Recheck paths after Studio upgrades.
 
 - Executable: `C:\INVT\Invtmatic Studio V3.0.1.4\CODESYS\Common\Invtmatic Studio.exe`.

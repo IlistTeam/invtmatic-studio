@@ -1,6 +1,6 @@
 ---
 name: invtmatic-studio
-description: "Develop, review and test IEC 61131-3 ST applications for INVT TM750 in INVTmatic Studio through persistent MCP. Inspect/edit/build project copies, create objects/tasks and debug positively verified simulation with variables, separate write/force and version-gated breakpoints/stepping, current-frame locals and bounded runtime trace. Physical PLC runtime control is outside the current integration."
+description: "Develop, review and test IEC 61131-3 ST applications for INVT TM750/TM751 in INVTmatic Studio through persistent MCP. Inspect/edit/build project copies, create objects/tasks and debug positively verified simulation. Separate opt-in physical TM751 tools bind a measured USB/RNDIS target, download, RUN/STOP, read/write and logout without automatic STOP. Physical debugger/trace and I/O commissioning remain outside the verified integration."
 ---
 
 # INVTmatic Studio
@@ -26,6 +26,9 @@ or library failures. The preserved `invtmatic-offline` adapter is the fallback.
 - For running logic, watching variables or input scenarios in simulation, read
   [simulation-debugging.md](references/simulation-debugging.md). Obtain fresh
   application GUID and target_id; runtime changes require confirmed simulation.
+- For the real TM751, USB/RNDIS connection, physical identity binding,
+  download/RUN/STOP/read/write/logout, read [physical-plc.md](references/physical-plc.md).
+  Physical tools require explicit startup options and their own fresh target_id.
 - Before breakpoints, stepping or stack inspection, read
   [breakpoint-debugging.md](references/breakpoint-debugging.md). HALT pauses the
   selected task; other tasks may continue. Obtain a current debug_id after download.
@@ -89,9 +92,12 @@ axes. Compiler success does not validate process behavior or machine safety.
 Use UI-initialized compilation and preserve device-selected library resolutions.
 The verified TM750 fixture uses `IoStandard 3.5.15.0`; newer is not automatically
 compatible. Project development remains on copies. Separate runtime tools operate
-only in positively verified Studio simulation; physical PLC login, download,
-RUN/STOP, forcing, reset, firmware update and network discovery are not exposed.
+only in positively verified Studio simulation. Separate opt-in physical tools
+support targeted discovery, measured binding, application login/download,
+RUN/STOP and normal variable read/write; see physical-plc.md. Physical forcing,
+reset, firmware update, breakpoints/stepping and trace are not exposed.
 Disconnect simulation before editing/rebuilding; close/stop cleans session-owned
 forces and stops/logs out its runtime. Keep the fallback scripts and
-their registration intact. Adaptation provenance is in
+their registration intact. Physical disconnect/shutdown logs out without STOP;
+stop a bench explicitly when required. Adaptation provenance is in
 [codesys-skill-adaptation.md](references/codesys-skill-adaptation.md).
