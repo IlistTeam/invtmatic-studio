@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "invtmatic-studio",
+  "version": "0.7.1",
+  "description": "INVTmatic Studio skills and local Windows MCP for ST development and verified simulation.",
+  "author": { "name": "IlistTeam and Codesys-MCP contributors" },
+  "repository": "https://github.com/IlistTeam/invtmatic-studio",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "INVTmatic Studio",
+        "shortDescription": "ST, сборка и отладка проектов INVT через локальный MCP",
+        "developerName": "IlistTeam",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "defaultPrompt": "Проверь настройку плагина INVTmatic Studio без запуска Studio и подключения к ПЛК."
+      }
+    }
+  }
+}
