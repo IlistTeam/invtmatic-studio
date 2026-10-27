@@ -24,3 +24,4 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run test:guards
+      - run: node --test tests/plugin-package.test.cjs

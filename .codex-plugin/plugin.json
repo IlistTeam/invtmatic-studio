@@ -1,0 +1,17 @@
+{
+  "name": "invtmatic-studio",
+  "version": "0.7.1",
+  "description": "INVTmatic Studio skills and local Windows MCP for ST development and verified simulation.",
+  "author": { "name": "IlistTeam and Codesys-MCP contributors" },
+  "repository": "https://github.com/IlistTeam/invtmatic-studio",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "INVTmatic Studio",
+    "shortDescription": "ST, сборка и отладка проектов INVT через локальный MCP",
+    "developerName": "IlistTeam",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

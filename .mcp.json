@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "invtmatic-persistent": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/scripts/start-plugin.cjs"]
+    }
+  }
+}

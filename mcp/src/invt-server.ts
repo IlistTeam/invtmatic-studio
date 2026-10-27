@@ -11,7 +11,7 @@ const options = new Command().requiredOption('--workspace <path>')
   .option('--physical-runtime', 'Additionally expose explicit physical PLC binding and application operations')
   .option('--timeout-ms <number>', 'Command deadline', '60000').parse().opts();
 const session = new InvtSession(options.workspace, options.exe, options.profile, Number(options.timeoutMs), options.physicalAddress, !!options.physicalRuntime);
-const server = new McpServer({name:'invtmatic-persistent', version:'0.7.0'});
+const server = new McpServer({name:'invtmatic-persistent', version:'0.7.1'});
 // SDK's complex overload inference is also avoided by the upstream server.
 const api = server as any;
 const guid = z.string().uuid();

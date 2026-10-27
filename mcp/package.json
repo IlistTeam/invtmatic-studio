@@ -1,6 +1,6 @@
 {
   "name": "invtmatic-studio-mcp",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "INVTmatic Studio project development, simulation and explicit TM751 physical commissioning MCP",
   "main": "dist/invt-server.js",
   "bin": {
@@ -41,7 +41,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "commander": "^11.1.0",
-    "zod": "^3.24.3"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "^20.14.1",
